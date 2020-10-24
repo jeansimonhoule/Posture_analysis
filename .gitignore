@@ -1,6 +1,5 @@
 ### CSV files ###
 *.csv
-
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json
@@ -11,3 +10,7 @@
 ### VisualStudioCode Patch ###
 # Ignore all local history of files
 .history
+
+### Folders and files ###
+*test.py
+*.SAVED_DATA

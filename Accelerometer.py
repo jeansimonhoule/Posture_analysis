@@ -33,6 +33,7 @@ class Accelerometer:
             os.mkdir(path)
         return path
         
+        
     def write_to_csv(self, filename_data,filename_reference):
         """Writes data to csv file"""
         if int(self.acceleration[0]) == 1:
