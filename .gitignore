@@ -8,6 +8,7 @@
 
 ### Folders and files ###
 *test.py
+*.csv
 .SAVED_DATA/*
 
 .__pycache__/*
