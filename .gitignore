@@ -1,11 +1,6 @@
-### CSV files ###
-*.csv
 ### VisualStudioCode ###
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+
 
 ### VisualStudioCode Patch ###
 # Ignore all local history of files
@@ -14,3 +9,5 @@
 ### Folders and files ###
 *test.py
 *.SAVED_DATA
+
+*.__pycache__
