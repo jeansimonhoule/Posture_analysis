@@ -1,5 +1,5 @@
 ### VisualStudioCode ###
-.vscode/
+/vscode/
 
 
 ### VisualStudioCode Patch ###
@@ -8,6 +8,6 @@
 
 ### Folders and files ###
 *test.py
-.SAVED_DATA/
+/SAVED_DATA/
 
-.__pycache__/
+/__pycache__/
