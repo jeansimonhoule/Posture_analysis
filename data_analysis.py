@@ -28,14 +28,12 @@ class Data:
 
     def get_reference(self):
         ref_data = pd.read_csv(self.Reference_path)
-        sorted_ref = ref_data.sort_values(by=['sensor','time'],ascending=([True,True]))
-        #print(sorted_ref)
         reference = np.zeros((2,3))
 
         for i in range(0,2):
-            reference[i,0] = sorted_ref[sorted_ref['sensor'] == i]['ax'].mean()
-            reference[i,1] = sorted_ref[sorted_ref['sensor'] == i]['ay'].mean()
-            reference[i,2] = sorted_ref[sorted_ref['sensor'] == i]['az'].mean()
+            reference[i,0] = ref_data[ref_data['sensor'] == i]['ax'].mean()
+            reference[i,1] = ref_data[ref_data['sensor'] == i]['ay'].mean()
+            reference[i,2] = ref_data[ref_data['sensor'] == i]['az'].mean()
 
         return reference
 
@@ -56,7 +54,7 @@ class Data:
                 pass
 
             else:
-                difference = round_to_x(epoch_mean['ax']-reference[0,0],x=10)
+                difference = abs(round_to_x(epoch_mean['ax']-reference[0,0],x=100))
                 data_by_epoch[time_index] = self.classification_dict[difference]
 
             time_index+=self.epoch_lenght
@@ -68,12 +66,18 @@ class Data:
 
 classification_dict = {
     0 : "a",
-    10 : "b",
-    20 : "c",
-    30 : "d",
-    40 : "e"
+    100 : "b",
+    200 : "c",
+    300 : "d",
+    400 : "e",
+    500 : "e",
+    600 : "e",
+    700 : "e",
+    800 : "e",
+    900 : "e",
+    1000 : "e"
 }
 
  
-data = Data(classification_dict,2000,day="2020_10_16")
+data = Data(classification_dict,2000,day="2020_10_24")
 print(data.mean_by_epoch(data.get_reference()))

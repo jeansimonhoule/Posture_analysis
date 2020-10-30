@@ -21,6 +21,27 @@ class Accelerometer:
         """Reads and decode to string the information from the serial port"""
         self.acceleration = self.port.readline().decode("utf-8").replace(" \r\n",'').split(',')
 
+    def check_for_heading(self):
+        heading = False
+        reset = False
+        while (heading) == False:
+            read_usb = self.port.readline().decode("utf-8").replace(" \r\n",'').split(',')
+            print(read_usb)
+            if read_usb[0]=='sensor':
+                print('yo1')
+                while reset == False: 
+                    print('yo2')
+                    read_usb = self.port.readline().decode("utf-8").replace(" \r\n",'').split(',')
+                    if read_usb[0]=='sensor':
+                        self.port.reset_input_buffer()
+                        continue
+                    if int(read_usb[2]) <= 500:
+                        reset = True
+                        print('break')
+                    self.port.reset_input_buffer()
+                heading = True
+            
+
 
     def create_folder(self):
         #get date of capture
@@ -51,10 +72,11 @@ def main():
     sensor = Accelerometer()
     sensor.setPort('COM4',9600)
     while True:
+        sensor.check_for_heading()
+        print("Recording starts now...")
         sensor.getAcceleration()
         print(sensor.acceleration)
         sensor.write_to_csv("DATA.csv","REFERENCE.csv")
-
 
 if __name__ == "__main__":
     main()
