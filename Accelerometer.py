@@ -21,12 +21,16 @@ class Accelerometer:
         """Reads and decode to string the information from the serial port"""
         self.acceleration = self.port.readline().decode("utf-8").replace(" \r\n",'').split(',')
 
-    def check_for_heading(self):
+    def check_for_heading(self,mode=''):
         heading = False
         reset = False
         while (heading) == False:
             read_usb = self.port.readline().decode("utf-8").replace(" \r\n",'').split(',')
-            print(read_usb)
+            if mode =='start':
+                print('*',read_usb)
+            else:
+                print(read_usb)
+                break  
             if read_usb[0]=='sensor':
                 print('yo1')
                 while reset == False: 
@@ -71,9 +75,10 @@ class Accelerometer:
 def main():
     sensor = Accelerometer()
     sensor.setPort('COM4',9600)
+    sensor.check_for_heading(mode='start')
+    print("Recording starts now...")
     while True:
         sensor.check_for_heading()
-        print("Recording starts now...")
         sensor.getAcceleration()
         print(sensor.acceleration)
         sensor.write_to_csv("DATA.csv","REFERENCE.csv")
