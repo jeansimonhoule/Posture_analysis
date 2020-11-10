@@ -1,0 +1,88 @@
+
+WindowManager:
+    MainWindow:
+    AnalyseWindow:
+    MesureWindow:
+
+
+<MainWindow>:
+    name: "main"
+    imagee: "image-analyse"
+
+    FloatLayout:
+        cols:1
+
+        FloatLayout:
+            size: root.width, root.height/2
+
+            Button:
+                pos_hint:{"x":0,"top":1}
+                size_hint: 1, 0.1
+                font_size: (root.width**2 + root.height**2) / 17**4
+                text: "Postura maxima"
+                halign:'left'
+
+            Button:
+                pos_hint:{"x":0.2,"top":0.25}
+                size_hint: 0.25, 0.1
+                font_size: (root.width**2 + root.height**2) / 17**4
+                text: "Analyser"
+                on_release:
+                    app.root.current = "analyse"
+                    root.manager.transition.direction = "left"
+                    
+
+            Button:
+                pos_hint:{"x":0.55,"top":0.25}
+                size_hint: 0.25, 0.1
+                font_size: (root.width**2 + root.height**2) / 17**4
+                text: "Mesurer"
+                on_release:
+                    app.root.current = "mesure"
+                    root.manager.transition.direction = "left"
+
+            Image:
+                id: image-analyse
+                source:'pexels-photomix-company-95916.jpg'
+                size_hint_x: 0.3
+                pos_hint:{"x":0.175,"bottom":0.3}
+                
+            Image:
+                source:'pexels-pixabay-53404.jpg'
+                size_hint_x: 0.3
+                pos_hint:{"x":0.525,"bottom":0.3}
+
+            Image:
+                source:'pexels-david-bartus-690779.jpg'
+                size_hint_x: 0.3
+                pos_hint:{"x":0.525,"bottom":0.3}
+                
+
+            
+
+<AnalyseWindow>:
+    name: "analyse"
+
+    Button:
+        text: "Go Back"
+        on_release: 
+            app.root.current = "main"
+            root.manager.transition.direction = "right"
+
+
+<MesureWindow>:
+    name: "mesure"
+
+    Button:
+        text: "Go Back"
+        on_release: 
+            app.root.current = "main"
+            root.manager.transition.direction = "right"
+
+
+
+    
+
+
+
+    
