@@ -58,17 +58,18 @@ class Accelerometer:
             os.mkdir(path)
         return path
         
+    def write_ref_to_csv(self):
+        """Writes the csv reference file"""
+        with open (str(self.create_folder().parent.joinpath('REFERENCE.csv')),'a',newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(self.acceleration)
+                
         
-    def write_to_csv(self, filename_data,filename_reference):
+    def write_data_to_csv(self):
         """Writes data to csv file"""
-        if int(self.acceleration[0]) == 1:
-            with open (str(self.create_folder().joinpath('REFERENCE.csv')),'a',newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow(self.acceleration[1:])
-        else:
-            with open (str(self.create_folder().joinpath('DATA.csv')),'a',newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow(self.acceleration[1:])
+        with open (str(self.create_folder().joinpath('DATA.csv')),'a',newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(self.acceleration)
 
 
         
@@ -81,7 +82,7 @@ def main():
         sensor.check_for_heading()
         sensor.getAcceleration()
         print(sensor.acceleration)
-        sensor.write_to_csv("DATA.csv","REFERENCE.csv")
+        sensor.write_to_csv()
 
 if __name__ == "__main__":
     main()

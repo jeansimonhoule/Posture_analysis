@@ -1,73 +1,339 @@
+<Widget>:
+    font_name:'RobotoMono-Regular'
 
-WindowManager:
-    MainWindow:
-    AnalyseWindow:
-    MesureWindow:
-
+<ScrollView>:
+    canvas.after:
+        Color:
+            rgba: self.bar_color[:3] + [self.bar_color[3] * 1 if self.do_scroll_y else 0]
+        Rectangle:
+            pos: self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]
+            size: self.bar_width+100, self.height * self.vbar[1]
+        Color:
+            rgba: self.bar_color[:3] + [self.bar_color[3] * 1 if self.do_scroll_x else 0]
+        Rectangle:
+            pos: self.x + self.width * self.hbar[0], self.y + self.bar_margin
+            size: self.width * self.hbar[1], self.bar_width
 
 <MainWindow>:
     name: "main"
     imagee: "image-analyse"
 
-    FloatLayout:
+    GridLayout: 
+        canvas.before:
+            Color:
+                rgba: 0.36,0.75,1,0.7
+            Rectangle:
+                size: self.size
+                pos: self.pos
         cols:1
+        size:root.width,root.height
+        spacing:10,10
+        padding:0,0,0,10
 
-        FloatLayout:
-            size: root.width, root.height/2
+
+        GridLayout:
+            cols:2
+            row_default_height:50
+            row_force_default:True
+            size_hint_y:None
+            height:self.minimum_height
+            Image:
+                id: logo
+                source:'1488492636-basicman09_81758.png'
+                size_hint:(None,None)
+                width:0.1*(root.width)
+                height:0.1*(root.height)
 
             Button:
+                id: posturamaxima
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, 1, 1
+                    Line:
+                        width: 1
+                        rectangle: self.x, self.y, self.width, self.height
+                
+                markup:True
+                background_color: 0.1,0.3,0.4,1
                 pos_hint:{"x":0,"top":1}
-                size_hint: 1, 0.1
-                font_size: (root.width**2 + root.height**2) / 17**4
-                text: "Postura maxima"
-                halign:'left'
+                size_hint: (None,None)
+                font_size: (root.width**2 + root.height**2) / 14**4
+                text: "[b]Postura maxima[/b]"
+                text_size: self.size
+                halign: "left"
+                valign: "center"
+                padding_x: 20
+                width:0.9*(root.width)
+                height:0.1*(root.height)
 
-            Button:
-                pos_hint:{"x":0.2,"top":0.25}
-                size_hint: 0.25, 0.1
-                font_size: (root.width**2 + root.height**2) / 17**4
-                text: "Analyser"
-                on_release:
-                    app.root.current = "analyse"
-                    root.manager.transition.direction = "left"
-                    
-
-            Button:
-                pos_hint:{"x":0.55,"top":0.25}
-                size_hint: 0.25, 0.1
-                font_size: (root.width**2 + root.height**2) / 17**4
-                text: "Mesurer"
-                on_release:
-                    app.root.current = "mesure"
-                    root.manager.transition.direction = "left"
+            
+        GridLayout:
+            cols:2
+            spacing:10,10
+            padding:10,0,50,0
 
             Image:
                 id: image-analyse
                 source:'pexels-photomix-company-95916.jpg'
-                size_hint_x: 0.3
-                pos_hint:{"x":0.175,"bottom":0.3}
                 
+
+            Button:
+                background_color: 0,0,0,0
+                font_size: (root.width**2 + root.height**2) / 15**4
+                text: "Analyser"
+                canvas.before:
+                    Color:
+                        rgba: (0,0.5,0,0.8) if self.state=='normal' else (0,.8,.7,1)  # visual feedback of press
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [50,]
+                on_release:
+                    root.manager.transition.direction = "left"
+                    root.analyseBtn()
+
+                    
             Image:
+                id: image-mesure
                 source:'pexels-pixabay-53404.jpg'
-                size_hint_x: 0.3
-                pos_hint:{"x":0.525,"bottom":0.3}
+            
+
+            Button:
+                background_color: 0,0,0,0
+                font_size: (root.width**2 + root.height**2) / 15**4
+                text: "Mesurer"
+                canvas.before:
+                    Color:
+                        rgba: (0.7,0.1,0.2,0.9) if self.state=='normal' else (0,.8,.7,1)  # visual feedback of press
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [50,]
+                on_release:
+                    root.manager.transition.direction = "left"
+                    root.mesureBtn()
 
             Image:
+                id: image-reference
                 source:'pexels-david-bartus-690779.jpg'
-                size_hint_x: 0.3
-                pos_hint:{"x":0.525,"bottom":0.3}
                 
 
-            
+            Button:
+                background_color: 0,0,0,0
+                font_size: (root.width**2 + root.height**2) / 15**4
+                text: "Reference"
+                canvas.before:
+                    Color:
+                        rgba: (0.5,0.5,0.5,1)  if self.state=='normal' else (0,.8,.7,1)  # visual feedback of press
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [50,]
+                on_release:
+                    root.manager.transition.direction = "left"
+                    root.referenceBtn()
+
+          
+                
 
 <AnalyseWindow>:
     name: "analyse"
+    firstchoice : firstchoice.__self__
+    secondchoice : secondchoice.__self__
+    confirmDate: confirmDate.__self__
+    dropdown: dropdown.__self__
+    btnSession:btnSession.__self__
+    
 
-    Button:
-        text: "Go Back"
-        on_release: 
-            app.root.current = "main"
-            root.manager.transition.direction = "right"
+    on_pre_enter:
+        root.get_possible_file()
+
+    GridLayout:
+        id:grid-main-analyse
+        cols:1
+        size:root.width,root.height
+
+        GridLayout:
+            id:grid-logo
+            cols:2
+            row_default_height:50
+            row_force_default:True
+            size_hint_y:None
+            height:self.minimum_height
+
+            Image:
+                id: logo
+                source:'1488492636-basicman09_81758.png'
+                size_hint:(None,None)
+                width:0.1*(root.width)
+                height:0.1*(root.height)
+
+            Button:
+                id: posturamaxima
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, 1, 1
+                    Line:
+                        width: 1
+                        rectangle: self.x, self.y, self.width, self.height
+                
+                markup:True
+                background_color: 0.1,0.3,0.4,1
+                pos_hint:{"x":0,"top":1}
+                size_hint: (None,None)
+                font_size: (root.width**2 + root.height**2) / 14**4
+                text: "[b]Postura maxima-> Analyse[/b]"
+                text_size: self.size
+                halign: "left"
+                valign: "center"
+                padding_x: 20
+                width:0.9*(root.width)
+                height:0.1*(root.height)
+            
+
+        GridLayout:
+            id: grid-date
+            cols:3
+            padding:40,70,40,20
+            row_default_height:50
+            row_force_default:True
+            size_hint_y:None
+            height:self.minimum_height
+            
+            Label:
+                text: "Veuillez entrer une date dans le format (AAAA_MM_JJ): "
+                text_size: self.size
+                pos_hint:{"x":0}
+                valign:"center"
+            
+            TextInput:
+                id: confirmDate
+                multiline: False
+                size_hint:(None,None)
+                width:0.3*root.width
+                height:"50dp"
+
+            Button:
+                text:"ok"
+                on_release:
+                    root.confirm_date_btn()
+                
+
+        GridLayout:
+            id:grid-session
+            cols:2
+            padding:40,60,40,60
+            row_default_height:50
+            row_force_default:True
+            size_hint_y:None
+            height:self.minimum_height
+
+            Label:
+                text: "Veuillez selectionner une session: "
+                text_size: self.size
+                pos_hint:{"x":0}
+                valign:"top"
+
+            Button:
+                id: btnSession
+                text: 'Session'
+                on_parent: dropdown.dismiss()
+                on_release: dropdown.open(self)
+                size_hint:(None,None)
+                height: '50dp'
+                width:0.3*root.width
+                pos_hint:{"top":1}
+                background_color: 0.1,0.3,0.8,1
+
+                DropDown:
+                    id: dropdown
+                    on_select: btnSession.text = '{}'.format(args[1])
+
+                    Button:
+                        id: firstchoice
+                        size_hint_y: None
+                        on_release: dropdown.select(firstchoice.text)
+                        height:'25dp'
+
+
+                    Button:
+                        id: secondchoice
+                        size_hint_y: None
+                        height: '25dp'
+                        on_release: dropdown.select(secondchoice.text)
+                 
+        
+        GridLayout:
+            id: grid-lancer-Button
+            cols:3
+            padding:40,40,40,100
+
+            Label:
+                text:""
+
+            Button:
+                id: lancerBtn
+                size_hint:(None,None)
+                width:0.5*root.width
+                text: "Go!"
+                on_release: 
+                    app.root.current = "result"
+                    root.manager.transition.direction = "up"
+                    root.lancer_analyse_btn()
+            
+            Label:
+                text:""
+
+<ResultWindow>:
+    name: "result"
+    
+    GridLayout:
+        cols:2
+
+        GridLayout:
+            rows:2
+
+            Image:
+                id: image-analyse
+                source:'pexels-photomix-company-95916.jpg'
+            
+            Image:
+                id: image-analyse
+                source:'pexels-photomix-company-95916.jpg'
+
+
+
+        GridLayout:
+            rows:4
+
+
+
+            ScrollView:
+
+                Label:
+                
+                    text: "René Lévesque est un homme d'État québécois né le 24 août 1922 à Campbellton2 au Canada et mort le 1er novembre 1987 à Verdun. D'abord connu comme journaliste, animateur de radio et de télévision, il est un artisan éminent de la Révolution tranquille, de la nationalisation de l'électricité au Québec et un ardent défenseur de la souveraineté politique du Québec. À la tête du Parti québécois, un parti indépendantiste, il est premier ministre du Québec de 1976 à 1985. Durant son mandat il tient le premier référendum sur l'indépendance du Québec du Canada en 1980."
+                    
+                    font_size: 30
+                    
+                    size_hint_x: 1.0
+                    
+                    size_hint_y: None
+                    
+                    text_size: self.width, None
+                    
+                    height: self.texture_size[1]
+
+            Button:
+                text:"allo"
+                on_release:
+                    root.manager.transition.direction = "right"
+                    app.root.current = "main"
+
+        
+
+
+        
 
 
 <MesureWindow>:
@@ -76,9 +342,21 @@ WindowManager:
     Button:
         text: "Go Back"
         on_release: 
+            root.manager.transition.direction = "right"
+            app.root.current = "main"
+
+
+<ReferenceWindow>:
+    name: "reference"
+
+    Button:
+        text: "Go back"
+        on_release: 
             app.root.current = "main"
             root.manager.transition.direction = "right"
 
+
+    
 
 
     
