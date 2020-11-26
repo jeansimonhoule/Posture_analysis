@@ -7,12 +7,30 @@
             rgba: self.bar_color[:3] + [self.bar_color[3] * 1 if self.do_scroll_y else 0]
         Rectangle:
             pos: self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]
-            size: self.bar_width+100, self.height * self.vbar[1]
+            size: self.bar_width*2, self.height * self.vbar[1]
         Color:
             rgba: self.bar_color[:3] + [self.bar_color[3] * 1 if self.do_scroll_x else 0]
         Rectangle:
             pos: self.x + self.width * self.hbar[0], self.y + self.bar_margin
             size: self.width * self.hbar[1], self.bar_width
+
+
+WindowManager:
+    id: sm
+    MainWindow:
+        id: main
+    AnalyseWindow:
+        id: analyse
+        main:main
+        sm:sm
+    ResultWindow:
+        id: result
+        analyse: analyse
+    MesureWindow:
+        id: mesure
+    ReferenceWindow:
+        id: reference
+    
 
 <MainWindow>:
     name: "main"
@@ -90,7 +108,7 @@
                         radius: [50,]
                 on_release:
                     root.manager.transition.direction = "left"
-                    root.analyseBtn()
+                    app.root.current = 'analyse'
 
                     
             Image:
@@ -111,7 +129,7 @@
                         radius: [50,]
                 on_release:
                     root.manager.transition.direction = "left"
-                    root.mesureBtn()
+                    app.root.current = 'mesure'
 
             Image:
                 id: image-reference
@@ -131,17 +149,17 @@
                         radius: [50,]
                 on_release:
                     root.manager.transition.direction = "left"
-                    root.referenceBtn()
+                    app.root.current = 'reference'
 
           
                 
 
 <AnalyseWindow>:
     name: "analyse"
-    firstchoice : firstchoice.__self__
-    secondchoice : secondchoice.__self__
+    #firstchoice : firstchoice.__self__
+    #secondchoice : secondchoice.__self__
     confirmDate: confirmDate.__self__
-    dropdown: dropdown.__self__
+    #dropdown: dropdown.__self__
     btnSession:btnSession.__self__
     
 
@@ -237,30 +255,14 @@
             Button:
                 id: btnSession
                 text: 'Session'
-                on_parent: dropdown.dismiss()
-                on_release: dropdown.open(self)
+                #on_parent: dropdown.dismiss()
                 size_hint:(None,None)
                 height: '50dp'
                 width:0.3*root.width
                 pos_hint:{"top":1}
                 background_color: 0.1,0.3,0.8,1
 
-                DropDown:
-                    id: dropdown
-                    on_select: btnSession.text = '{}'.format(args[1])
-
-                    Button:
-                        id: firstchoice
-                        size_hint_y: None
-                        on_release: dropdown.select(firstchoice.text)
-                        height:'25dp'
-
-
-                    Button:
-                        id: secondchoice
-                        size_hint_y: None
-                        height: '25dp'
-                        on_release: dropdown.select(secondchoice.text)
+               
                  
         
         GridLayout:
@@ -275,7 +277,7 @@
                 id: lancerBtn
                 size_hint:(None,None)
                 width:0.5*root.width
-                text: "Go!"
+                text: "Lancer l'analyse"
                 on_release: 
                     app.root.current = "result"
                     root.manager.transition.direction = "up"
@@ -286,74 +288,123 @@
 
 <ResultWindow>:
     name: "result"
+    source1: source1
+    source2: source2
     
     GridLayout:
         cols:2
 
         GridLayout:
+            id:grid-logo
+            cols:2
+            row_default_height:50
+            row_force_default:True
+            size_hint_y:None
+            height:self.minimum_height
+
+            Image:
+                id: logo
+                source:'1488492636-basicman09_81758.png'
+                size_hint:(None,None)
+                width:0.1*(root.width)
+                height:0.1*(root.height)
+
+            Button:
+                id: posturamaxima
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, 1, 1
+                    Line:
+                        width: 1
+                        rectangle: self.x, self.y, self.width, self.height
+                
+                markup:True
+                background_color: 0.1,0.3,0.4,1
+                pos_hint:{"x":0,"top":1}
+                size_hint: (None,None)
+                font_size: (root.width**2 + root.height**2) / 14**4
+                text: "[b]Postura maxima-> Analyse[/b]"
+                text_size: self.size
+                halign: "left"
+                valign: "center"
+                padding_x: 20
+                width:0.9*(root.width)
+                height:0.1*(root.height)
+                
+        GridLayout:
             rows:2
 
             Image:
-                id: image-analyse
-                source:'pexels-photomix-company-95916.jpg'
+                id: source1
             
             Image:
-                id: image-analyse
-                source:'pexels-photomix-company-95916.jpg'
+                id: source2
 
 
 
         GridLayout:
-            rows:4
-
+            rows:2
 
 
             ScrollView:
 
                 Label:
-                
-                    text: "René Lévesque est un homme d'État québécois né le 24 août 1922 à Campbellton2 au Canada et mort le 1er novembre 1987 à Verdun. D'abord connu comme journaliste, animateur de radio et de télévision, il est un artisan éminent de la Révolution tranquille, de la nationalisation de l'électricité au Québec et un ardent défenseur de la souveraineté politique du Québec. À la tête du Parti québécois, un parti indépendantiste, il est premier ministre du Québec de 1976 à 1985. Durant son mandat il tient le premier référendum sur l'indépendance du Québec du Canada en 1980."
-                    
-                    font_size: 30
-                    
+                    text: 2*"René Lévesque est un homme d'État québécois né le 24 août 1922 à Campbellton2 au Canada et mort le 1er novembre 1987 à Verdun. D'abord connu comme journaliste, animateur de radio et de télévision, il est un artisan éminent de la Révolution tranquille, de la nationalisation de l'électricité au Québec et un ardent défenseur de la souveraineté politique du Québec. À la tête du Parti québécois, un parti indépendantiste, il est premier ministre du Québec de 1976 à 1985. Durant son mandat il tient le premier référendum sur l'indépendance du Québec du Canada en 1980."
+                    font_size: 20
                     size_hint_x: 1.0
-                    
                     size_hint_y: None
-                    
                     text_size: self.width, None
-                    
                     height: self.texture_size[1]
 
-            Button:
-                text:"allo"
-                on_release:
-                    root.manager.transition.direction = "right"
-                    app.root.current = "main"
+            ScrollView:
 
-        
-
-
-        
-
+                Label:
+                    text: 2*"René Lévesque est un homme d'État québécois né le 24 août 1922 à Campbellton2 au Canada et mort le 1er novembre 1987 à Verdun. D'abord connu comme journaliste, animateur de radio et de télévision, il est un artisan éminent de la Révolution tranquille, de la nationalisation de l'électricité au Québec et un ardent défenseur de la souveraineté politique du Québec. À la tête du Parti québécois, un parti indépendantiste, il est premier ministre du Québec de 1976 à 1985. Durant son mandat il tient le premier référendum sur l'indépendance du Québec du Canada en 1980."
+                    font_size: 20
+                    size_hint_x: 1.0
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+            
 
 <MesureWindow>:
     name: "mesure"
+    mesureState: mesureState
+    
+    GridLayout:
+        rows:2
 
-    Button:
-        text: "Go Back"
-        on_release: 
-            root.manager.transition.direction = "right"
-            app.root.current = "main"
+        Button:
+            text: "Démarrer une session d'analyse"
+            on_release: 
+                root.mesure_Btn()
+
+        Label: 
+            id: mesureState
+            text:" "
+
+
+
 
 
 <ReferenceWindow>:
     name: "reference"
+    referenceLabel: referenceLabel
+   
 
-    Button:
-        text: "Go back"
-        on_release: 
-            app.root.current = "main"
-            root.manager.transition.direction = "right"
+    GridLayout: 
+        rows:3
+
+        Button:
+            text: "Get my reference"
+            on_release: 
+                background_color = 0,1,0,1
+                root.getRef_btn()
+
+        Label: 
+            id: referenceLabel
+            text: ""
+
 
 
     

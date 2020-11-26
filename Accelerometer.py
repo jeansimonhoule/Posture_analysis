@@ -28,18 +28,34 @@ class Accelerometer:
             read_usb = self.port.readline().decode("utf-8").replace(" \r\n",'').split(',')
             if mode =='start':
                 print('*',read_usb)
-            else:
-                print(read_usb)
-                break  
+
             if read_usb[0]=='sensor':
                 print('yo1')
+                self.create_new_session() ###crée une nouvelle session lorsque le temps est remis à zéro
+                time.sleep(1)
                 while reset == False: 
                     print('yo2')
                     read_usb = self.port.readline().decode("utf-8").replace(" \r\n",'').split(',')
-                    if read_usb[0]=='sensor':
-                        self.port.reset_input_buffer()
+                    if read_usb[0]=='sensor': 
+                        self.port.reset_input_buffer() #pour éviter que le message le heading s'envoie plein de fois si on appuie longuement
                         continue
-                    if int(read_usb[2]) <= 500:
+                    if int(read_usb[1]) <= 5:
+                        reset = True
+                        print('break')
+                    self.port.reset_input_buffer()
+                heading = True
+            
+            if mode == 'in_session':
+                print('yo1')
+                self.create_new_session() ###crée une nouvelle session lorsque le temps est remis à zéro
+                time.sleep(1)
+                while reset == False: 
+                    print('yo2')
+                    read_usb = self.port.readline().decode("utf-8").replace(" \r\n",'').split(',')
+                    if read_usb[0]=='sensor': 
+                        self.port.reset_input_buffer() #pour éviter que le message le heading s'envoie plein de fois si on appuie longuement
+                        continue
+                    if int(read_usb[1]) <= 5:
                         reset = True
                         print('break')
                     self.port.reset_input_buffer()
@@ -57,32 +73,72 @@ class Accelerometer:
         if path.exists() == False:
             os.mkdir(path)
         return path
+    
+    def create_new_session(self):
+        i = 1
+
+        data_path = self.create_folder().joinpath('session'+str(i)) 
+        existence = data_path.exists()
+
+        while existence is True:
+            i+=1
+            data_path = self.create_folder().joinpath('session'+str(i))
+            existence = data_path.exists()
+
+        os.mkdir(data_path)
+        self.data_path = data_path.joinpath('DATA.csv')
         
+
+
     def write_ref_to_csv(self):
-        """Writes the csv reference file"""
+        """Writes reference to csv file"""
         with open (str(self.create_folder().parent.joinpath('REFERENCE.csv')),'a',newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow(self.acceleration)
-                
-        
-    def write_data_to_csv(self):
-        """Writes data to csv file"""
-        with open (str(self.create_folder().joinpath('DATA.csv')),'a',newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(self.acceleration)
+
+    def write_data_to_csv(self,path):
+        """writes data to csv file"""
+        with open (str(path),'a',newline='') as file:
             writer = csv.writer(file)
             writer.writerow(self.acceleration)
 
 
-        
+
+    def save_reference(self):
+        """do all the process of reading the port and saving in the csv file"""
+        start = time.time()
+        ref_time = time.time()-start
+        self.setPort('COM4',9600)
+        #delete reference to update it
+        reference_path = self.create_folder().parent.joinpath("REFERENCE.csv")
+        print(reference_path)
+        if reference_path.exists():
+            os.remove(reference_path)
+        print("Recording reference")
+        while ref_time <= 30: 
+            self.getAcceleration()
+            self.write_ref_to_csv()
+            ref_time = time.time()-start
+
+
+    def save_data(self):
+        self.setPort('COM4',9600)
+        self.check_for_heading(mode='start')
+        print("Recording starts now...")
+        while True:
+            self.getAcceleration()
+            print(self.acceleration)
+            if self.acceleration[0] == 'sensor':
+                self.check_for_heading(mode='in_session')
+            else:
+                self.write_data_to_csv(self.data_path)
+
+
+
+    
 def main():
-    sensor = Accelerometer()
-    sensor.setPort('COM4',9600)
-    sensor.check_for_heading(mode='start')
-    print("Recording starts now...")
-    while True:
-        sensor.check_for_heading()
-        sensor.getAcceleration()
-        print(sensor.acceleration)
-        sensor.write_to_csv()
+    testacc = Accelerometer()
+    testacc.save_data()
 
 if __name__ == "__main__":
     main()
