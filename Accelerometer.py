@@ -87,8 +87,14 @@ class Accelerometer:
 
         os.mkdir(data_path)
         self.data_path = data_path.joinpath('DATA.csv')
-        
+        self.write_time()
+       
 
+    def write_time(self):
+        creation_time = str(datetime.datetime.now().strftime("%H:%M"))
+        file1 = open(self.data_path.parent.joinpath("time.txt"),"w") 
+        file1.write(creation_time+"\n")
+        file1.close()
 
     def write_ref_to_csv(self):
         """Writes reference to csv file"""
@@ -96,11 +102,11 @@ class Accelerometer:
             writer = csv.writer(file)
             writer.writerow(self.acceleration)
 
-    def write_data_to_csv(self,path):
+    def write_data_to_csv(self,path,data_to_write):
         """writes data to csv file"""
         with open (str(path),'a',newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(self.acceleration)
+            writer.writerow(data_to_write)
 
 
 
@@ -131,7 +137,7 @@ class Accelerometer:
             if self.acceleration[0] == 'sensor':
                 self.check_for_heading(mode='in_session')
             else:
-                self.write_data_to_csv(self.data_path)
+                self.write_data_to_csv(self.data_path,self.acceleration)
 
 
 

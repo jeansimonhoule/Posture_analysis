@@ -14,10 +14,12 @@ from kivy.uix.label import Label
 from kivy.clock import Clock
 
 import os
+import json
 from pathlib import Path
 from accelerometer import Accelerometer
 from threading import Thread
 from data_analysis import Data
+
 
 
 
@@ -73,14 +75,38 @@ class AnalyseWindow(Screen):
 class ResultWindow(Screen):
     source1 = ObjectProperty(None)
     source2 = ObjectProperty(None)
+    dropdown2 = ObjectProperty(None)
     analyse = ObjectProperty()
+    btnResult = ObjectProperty(None)
+
     
     def on_enter(self):
         print("x:", self.analyse.selected_session)
-        path = Path(os.path.abspath(__file__)).parent.joinpath("SAVED_DATA").joinpath(self.analyse.selected_session[0]).joinpath(self.analyse.selected_session[1])
-        self.source1.source = str(path.joinpath('result1.png'))
-        self.source2.source = str(path.joinpath('result2.png'))
+        self.path = Path(os.path.abspath(__file__)).parent.joinpath("SAVED_DATA").joinpath(self.analyse.selected_session[0]).joinpath(self.analyse.selected_session[1])
+        self.source1.source = str(self.path.joinpath('result1.png'))
+        self.source2.source = str(self.path.joinpath('result2.png'))
+        self.available_time()
+        self.create_dropdown()
 
+    def available_time(self):
+        with open(self.path.joinpath('times.json'), 'r') as f:
+            self.times = json.load(f)
+
+
+    def create_dropdown(self):
+        self.dropdown2 = DropDown()
+        for time in self.times:
+            btn = Button(text= time, size_hint_y=None, height=44)
+            btn.bind(on_release=lambda btn: self.dropdown2.select(btn.text))
+            self.dropdown2.add_widget(btn)
+        self.btnResult.bind(on_release=self.dropdown2.open)
+        self.dropdown2.bind(on_select=lambda instance, x: self.display_posture(x))
+
+    def display_posture(self,x):
+        setattr(self.btnResult,'text',x)
+        self.source2.source = str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath('bleu.png'))
+
+    
 
 class MesureWindow(Screen):
     mesureState = ObjectProperty(None)
