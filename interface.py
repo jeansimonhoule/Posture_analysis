@@ -72,26 +72,35 @@ class AnalyseWindow(Screen):
         data.analyze_my_data()
 
 
+
+
 class ResultWindow(Screen):
     source1 = ObjectProperty(None)
     source2 = ObjectProperty(None)
     dropdown2 = ObjectProperty(None)
     analyse = ObjectProperty()
     btnResult = ObjectProperty(None)
+    hourLabel = ObjectProperty(None)
+    resultLabel= ObjectProperty(None)
 
     
     def on_enter(self):
         print("x:", self.analyse.selected_session)
         self.path = Path(os.path.abspath(__file__)).parent.joinpath("SAVED_DATA").joinpath(self.analyse.selected_session[0]).joinpath(self.analyse.selected_session[1])
+        self.resultLabel.text="[color=330000]Good! \nYour posture was as good as tonymass9![/color]"
         self.source1.source = str(self.path.joinpath('result1.png'))
         self.source2.source = str(self.path.joinpath('result2.png'))
         self.available_time()
+        self.get_posture()
         self.create_dropdown()
 
     def available_time(self):
         with open(self.path.joinpath('times.json'), 'r') as f:
             self.times = json.load(f)
 
+    def get_posture(self):
+        with open(self.path.joinpath('postures.json'), 'r') as f:
+            self.postures = json.load(f)
 
     def create_dropdown(self):
         self.dropdown2 = DropDown()
@@ -103,9 +112,9 @@ class ResultWindow(Screen):
         self.dropdown2.bind(on_select=lambda instance, x: self.display_posture(x))
 
     def display_posture(self,x):
-        setattr(self.btnResult,'text',x)
-        self.source2.source = str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath('bleu.png'))
-
+        #setattr(self.btnResult,'text',x)
+        self.source2.source = str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath(self.postures[x]+".png"))
+        setattr(self.hourLabel,'text',"[color=3333ff]"+x+"[/color]")
     
 
 class MesureWindow(Screen):
@@ -114,7 +123,7 @@ class MesureWindow(Screen):
     def mesure_Btn(self):
         t2 = Thread(target=self.acc.save_data)
         t2.start()
-        self.mesureState.text = "Session démarré!!!!! Bonne chance"
+        self.mesureState.text = "Currently analysing your posture..."
 
 
     

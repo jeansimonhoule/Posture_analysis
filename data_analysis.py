@@ -26,13 +26,13 @@ class Data:
         self.time = ""
         self.Data_path = root.parent.joinpath("SAVED_DATA").joinpath(self.day).joinpath(self.session).joinpath("DATA.csv") 
         self.Reference_path = self.Data_path.parents[2].joinpath("REFERENCE.csv")
-        self.classification_dict = {0 : 1,100 : 2,200 : 3,300 : 4,400 : 5,500 : 5,600 : 5,700 : 5, 800 : 5,900 : 5,1000 : 5}
         
         self.epoch_lenght = 60 # 300 secondes car nous voulons des périodes de 5 minutes
         self.column_names = ["sensor","time","ax","ay","az"]
         self.sensor_waist= []
         self.sensor_torso= []
-        #self.waist
+        self.posture_type = {}
+        self.angle_memory = []
         self.final_class = []
         self.angle_reference = {}
 
@@ -87,7 +87,8 @@ class Data:
             angle_aa_ref = self.angle_reference['Waist_aa']
 
         angle_gd = np.rad2deg(np.arctan(sensor_data.ax.mean()/sensor_data.ay.mean()))
-        diff_angle_gd = angle_gd_ref-angle_gd
+
+        diff_angle_gd = angle_gd-angle_gd_ref
 
         # classification de l'angle gauche/droite
         if abs(diff_angle_gd) <= 10:
@@ -101,10 +102,13 @@ class Data:
         
         else:
             class_gd = 4
+
+        if diff_angle_gd<0:
+            class_gd = class_gd*(-1)
         
         # classification de l'angle avant/arrière
         angle_aa = np.rad2deg(np.arctan(sensor_data.az.mean()/sensor_data.ay.mean()))
-        diff_angle_aa = angle_aa_ref-angle_aa
+        diff_angle_aa = angle_aa-angle_aa_ref
 
         if abs(diff_angle_aa) <= 5: 
             class_aa = 1
@@ -118,9 +122,11 @@ class Data:
         else:
             class_aa = 4
         
-        sensor_class = np.maximum(class_gd,class_aa)
-        print(diff_angle_gd,diff_angle_aa)
+        if diff_angle_aa <0:
+            class_aa=class_aa*(-1)
 
+        sensor_class = np.maximum(abs(class_gd),abs(class_aa))
+        self.angle_memory.append((class_gd,class_aa))
         if sensor == 1:
             self.sensor_waist.append(sensor_class)
         if sensor == 0:
@@ -134,6 +140,7 @@ class Data:
             time_label.append(time_index)
         with open(self.Data_path.parent.joinpath("times.json"), 'w') as f:
             json.dump(time_label,f)
+        self.times = time_label
         return time_label
 
 
@@ -144,10 +151,10 @@ class Data:
         fig1.patch.set_facecolor(bg_color)
         ax = plt.subplot(111)
 
-        timeLabel = self.time_label()
+        self.time_label()
+        timeLabel = self.times
         label_initialize = [timeLabel[0],timeLabel[0],timeLabel[0],timeLabel[0],timeLabel[0]]
         timeLabel = label_initialize+timeLabel
-        print(timeLabel)
         #to change for time
         #timeLabel = self.time_label(self)
         label_pos = [0,0,0,0,0]
@@ -180,6 +187,39 @@ class Data:
         qualitative, colors = self.get_qualitative_and_coloured(self.final_class)
         self.final_class = qualitative
         self.colors = colors
+        print(self.angle_memory)
+
+    
+    def save_posture_type(self):
+        for i in range(len(self.final_class)):
+            if self.final_class[i] =='parfait':
+                self.posture_type[self.times[i]] =("parfait")
+            
+            else:
+                gd = self.angle_memory[i][0]
+                aa = self.angle_memory[i][1]
+                if gd <= -2:
+                    if aa>=2:
+                        self.posture_type[self.times[i]]=("courbe_avant_g")
+                    elif aa<=2:
+                        self.posture_type[self.times[i]]=('affale_g')
+
+                elif gd>=2:
+                    if aa>=2:
+                        self.posture_type[self.times[i]] = ("courbe_avant_d")
+                    elif aa<=2:
+                        self.posture_type[self.times[i]] =('affale_d')
+                
+                elif aa>=2:
+                        self.posture_type[self.times[i]] =("courbe_avant")
+                elif aa<=2:
+                        self.posture_type[self.times[i]] =('affale')
+                else:
+                    self.posture_type[self.times[i]] =('parfait')
+        print(self.posture_type)
+        with open(self.Data_path.parent.joinpath("postures.json"), 'w') as filef:
+            json.dump(self.posture_type,filef)
+        
 
     def get_qualitative_and_coloured(self,numberList):
         qualitativeList = []
@@ -202,7 +242,6 @@ class Data:
                 colorList.append((0,0,0,0))
         colorList = [(0,0,0,0),(0,0,0,0),(0,0,0,0),(0,0,0,0),(0,0,0,0)]+colorList
         print(qualitativeList)
-        print(colorList)
         return qualitativeList,colorList
 
 
@@ -211,21 +250,19 @@ class Data:
         self.load_data()
         self.chunk_the_data()
         self.get_classification()
+        self.time_label()
         self.get_figures()
+        self.save_posture_type()
 
 def main():
     data = Data("session5","2020_11_22")
     data.get_mean_reference()
     data.load_data()
     data.chunk_the_data()
-    print('GD---------------AA')
     data.get_classification()
-    print(data.sensor_torso)
-    print(data.sensor_waist)
-    print(data.angle_reference['Waist_gd'],data.angle_reference['Waist_aa'])
-    print(data.final_class)
     data.time_label()
     data.get_figures()
+    data.save_posture_type()
 
 
 if __name__ == '__main__':
