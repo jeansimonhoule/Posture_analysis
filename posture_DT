@@ -1,0 +1,33 @@
+digraph Tree {
+node [shape=box, style="filled, rounded", color="black", fontname=helvetica] ;
+edge [fontname=helvetica] ;
+0 [label=<gdWaist &le; -11.249<br/>gini = 0.717<br/>samples = 71<br/>value = [20, 14, 6, 3, 28]<br/>class = reference>, fillcolor="#fbe0f5"] ;
+1 [label=<gdWaist &le; -30.75<br/>gini = 0.227<br/>samples = 23<br/>value = [20, 0, 0, 3, 0]<br/>class = penche>, fillcolor="#e99457"] ;
+0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+2 [label=<gini = 0.0<br/>samples = 3<br/>value = [0, 0, 0, 3, 0]<br/>class = penche gauche>, fillcolor="#3c39e5"] ;
+1 -> 2 ;
+3 [label=<gini = 0.0<br/>samples = 20<br/>value = [20, 0, 0, 0, 0]<br/>class = penche>, fillcolor="#e58139"] ;
+1 -> 3 ;
+4 [label=<aaWaist &le; 27.738<br/>gini = 0.559<br/>samples = 48<br/>value = [0, 14, 6, 0, 28]<br/>class = reference>, fillcolor="#f4ade5"] ;
+0 -> 4 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+5 [label=<aaTorso &le; -42.465<br/>gini = 0.32<br/>samples = 35<br/>value = [0, 7, 0, 0, 28]<br/>class = reference>, fillcolor="#ec6ad0"] ;
+4 -> 5 ;
+6 [label=<gini = 0.0<br/>samples = 6<br/>value = [0, 6, 0, 0, 0]<br/>class = affale>, fillcolor="#7be539"] ;
+5 -> 6 ;
+7 [label=<gdWaist &le; -8.593<br/>gini = 0.067<br/>samples = 29<br/>value = [0, 1, 0, 0, 28]<br/>class = reference>, fillcolor="#e640c2"] ;
+5 -> 7 ;
+8 [label=<aaTorso &le; -10.281<br/>gini = 0.444<br/>samples = 3<br/>value = [0, 1, 0, 0, 2]<br/>class = reference>, fillcolor="#f29ce0"] ;
+7 -> 8 ;
+9 [label=<gini = 0.0<br/>samples = 2<br/>value = [0, 0, 0, 0, 2]<br/>class = reference>, fillcolor="#e539c0"] ;
+8 -> 9 ;
+10 [label=<gini = 0.0<br/>samples = 1<br/>value = [0, 1, 0, 0, 0]<br/>class = affale>, fillcolor="#7be539"] ;
+8 -> 10 ;
+11 [label=<gini = 0.0<br/>samples = 26<br/>value = [0, 0, 0, 0, 26]<br/>class = reference>, fillcolor="#e539c0"] ;
+7 -> 11 ;
+12 [label=<aaTorso &le; -12.957<br/>gini = 0.497<br/>samples = 13<br/>value = [0, 7, 6, 0, 0]<br/>class = affale>, fillcolor="#ecfbe3"] ;
+4 -> 12 ;
+13 [label=<gini = 0.0<br/>samples = 6<br/>value = [0, 0, 6, 0, 0]<br/>class = penche droite>, fillcolor="#39e5c5"] ;
+12 -> 13 ;
+14 [label=<gini = 0.0<br/>samples = 7<br/>value = [0, 7, 0, 0, 0]<br/>class = affale>, fillcolor="#7be539"] ;
+12 -> 14 ;
+}

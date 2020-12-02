@@ -81,10 +81,12 @@ class Data:
         if sensor == 0: 
             angle_gd_ref = self.angle_reference['Torso_gd']
             angle_aa_ref = self.angle_reference['Torso_aa']
+            file0 = open(self.Data_path.parent.joinpath("sensor0.txt"),"a")
         
         if sensor == 1: 
             angle_gd_ref = self.angle_reference['Waist_gd']
             angle_aa_ref = self.angle_reference['Waist_aa']
+            file1 = open(self.Data_path.parent.joinpath("sensor1.txt"),"a")
 
         angle_gd = np.rad2deg(np.arctan(sensor_data.ax.mean()/sensor_data.ay.mean()))
 
@@ -129,8 +131,13 @@ class Data:
         self.angle_memory.append((class_gd,class_aa))
         if sensor == 1:
             self.sensor_waist.append(sensor_class)
+            file1.write(str(angle_gd)+","+str(angle_aa)+"\n")
+            file1.close()
         if sensor == 0:
             self.sensor_torso.append(sensor_class)
+            file0.write(str(angle_gd)+","+str(angle_aa)+"\n")
+            file0.close()
+
 
     def time_label(self):
         time_label = []
@@ -255,7 +262,7 @@ class Data:
         self.save_posture_type()
 
 def main():
-    data = Data("session5","2020_11_22")
+    data = Data("session2","2020_12_02")
     data.get_mean_reference()
     data.load_data()
     data.chunk_the_data()
@@ -263,6 +270,9 @@ def main():
     data.time_label()
     data.get_figures()
     data.save_posture_type()
+    filew = open(data.Data_path.parent.joinpath("type.txt"),"w")
+    filew.write("torsion vers gauche")
+    filew.close()
 
 
 if __name__ == '__main__':
