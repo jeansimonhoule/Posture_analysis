@@ -8,6 +8,7 @@ from utils import *
 import matplotlib.pyplot as plt
 import seaborn
 import json
+from classification import kNeighbors
 
 
 
@@ -23,18 +24,16 @@ class Data:
         
         self.day=day
         self.session = session
-        self.time = ""
         self.Data_path = root.parent.joinpath("SAVED_DATA").joinpath(self.day).joinpath(self.session).joinpath("DATA.csv") 
         self.Reference_path = self.Data_path.parents[2].joinpath("REFERENCE.csv")
         
         self.epoch_lenght = 60 # 300 secondes car nous voulons des périodes de 5 minutes
         self.column_names = ["sensor","time","ax","ay","az"]
-        self.sensor_waist= []
-        self.sensor_torso= []
         self.posture_type = {}
-        self.angle_memory = []
         self.final_class = []
-        self.angle_reference = {}
+        self.angle_reference={}
+        
+        self.data = pd.read_csv(self.Data_path,names=self.column_names)
 
     def get_mean_reference(self):
         "Compute mean acceleration from reference.csv file"
@@ -50,17 +49,8 @@ class Data:
         self.angle_reference['Waist_gd'] = np.rad2deg(np.arctan(reference[(1,"ax")]/reference[(1,"ay")]))
         self.angle_reference['Waist_aa'] = np.rad2deg(np.arctan(reference[(1,"az")]/reference[(1,"ay")]))
         
-
-    def load_data(self):
-        self.data = pd.read_csv(self.Data_path,names=self.column_names)
-        self.get_time()
+        
     
-    def get_time(self):
-        file1 = open(self.Data_path.parent.joinpath("time.txt"),"r")
-        time = file1.readline()
-        self.time = datetime.datetime(2020,1,1,hour=int(time[0]+time[1]),minute=int(time[3]+time[4]))
-        file1.close()
-
     def chunk_the_data(self):
 
         max_time = self.data.time.max()
@@ -73,66 +63,30 @@ class Data:
             chunked_data.append(self.data[(self.data.time>=start_time) & (self.data.time<end_time)])
         self.chunked_data = chunked_data
 
-    def compute_angle_of_chunks(self,data_chunk,sensor):
+    def compute_angle_of_chunks(self,data_chunk):
         #prend en paramètre un morceau de data et un sensor (ex: le deuxième 5 minutes et le capteur de la taille)
-        sensor_class, class_gd, class_aa = 0,0,0
-        sensor_data = data_chunk[data_chunk.sensor == sensor]
-        
-        if sensor == 0: 
-            angle_gd_ref = self.angle_reference['Torso_gd']
-            angle_aa_ref = self.angle_reference['Torso_aa']
-        
-        if sensor == 1: 
-            angle_gd_ref = self.angle_reference['Waist_gd']
-            angle_aa_ref = self.angle_reference['Waist_aa']
+        X_to_predict = []
+        for i in range(0,2):
+            sensor_data = data_chunk[data_chunk.sensor == i]
 
-        angle_gd = np.rad2deg(np.arctan(sensor_data.ax.mean()/sensor_data.ay.mean()))
+            angle_gd = np.rad2deg(np.arctan(sensor_data.ax.mean()/sensor_data.ay.mean()))
+            
+            angle_aa = np.rad2deg(np.arctan(sensor_data.az.mean()/sensor_data.ay.mean()))
+            X_to_predict.append(angle_gd)
+            X_to_predict.append(angle_aa)
 
-        diff_angle_gd = angle_gd-angle_gd_ref
+        X_to_predict = [X_to_predict]
+        return X_to_predict
 
-        # classification de l'angle gauche/droite
-        if abs(diff_angle_gd) <= 10:
-            class_gd = 1
-
-        elif abs(diff_angle_gd) <=15:
-            class_gd = 2
-        
-        elif abs(diff_angle_gd) <=20:
-            class_gd = 3
-        
-        else:
-            class_gd = 4
-
-        if diff_angle_gd<0:
-            class_gd = class_gd*(-1)
-        
-        # classification de l'angle avant/arrière
-        angle_aa = np.rad2deg(np.arctan(sensor_data.az.mean()/sensor_data.ay.mean()))
-        diff_angle_aa = angle_aa-angle_aa_ref
-
-        if abs(diff_angle_aa) <= 5: 
-            class_aa = 1
-     
-        elif abs(diff_angle_aa) <= 10:
-            class_aa= 2
-        
-        elif abs(diff_angle_aa) <=15:
-            class_aa = 3
-        
-        else:
-            class_aa = 4
-        
-        if diff_angle_aa <0:
-            class_aa=class_aa*(-1)
-
-        sensor_class = np.maximum(abs(class_gd),abs(class_aa))
-        self.angle_memory.append((class_gd,class_aa))
-        if sensor == 1:
-            self.sensor_waist.append(sensor_class)
-        if sensor == 0:
-            self.sensor_torso.append(sensor_class)
 
     def time_label(self):
+        #get initialization time from text file
+        file1 = open(self.Data_path.parent.joinpath("time.txt"),"r")
+        time = file1.readline()
+        self.time = datetime.datetime(2020,1,1,hour=int(time[0]+time[1]),minute=int(time[3]+time[4]))
+        file1.close()
+        
+        #create array for time of each epoch
         time_label = []
         for i in range(len(self.final_class)):
             time_index = self.time + datetime.timedelta(seconds=i*self.epoch_lenght)
@@ -145,124 +99,96 @@ class Data:
 
 
     def get_figures(self):
-        #plt.rcParams["font.family"] = "roboto"
         bg_color = (0.88,0.88,0.88)
         fig1 = plt.figure(1)
         fig1.patch.set_facecolor(bg_color)
         ax = plt.subplot(111)
 
+        #add 3 blank time at the beginning to make sure ylabel are placed in correct order
         self.time_label()
-        timeLabel = self.times
-        label_initialize = [timeLabel[0],timeLabel[0],timeLabel[0],timeLabel[0],timeLabel[0]]
-        timeLabel = label_initialize+timeLabel
-        #to change for time
-        #timeLabel = self.time_label(self)
-        label_pos = [0,0,0,0,0]
+        label_initialize = [self.times[0],self.times[0],self.times[0]]
+        timeLabel = label_initialize+self.times
+        
+        #add 3 blank positions at the beginning to make sure ylabel are placed in correct order
+        label_pos = [0,0,0]
         x = np.arange(1,len(self.final_class)+1)
         x = np.insert(x,0,label_pos)
 
-        label = ["","parfait","bien","attention","à corriger"]
-        result = self.final_class
+        #add the label and one blank space so that first label starts higher than x axis
+        label = ["","parfait","à corriger"]
+        result = self.binaryClass
         y_data = label+result
+    
         barlist = ax.bar(timeLabel,y_data,color=self.colors)
-        for i in range(4):
-            barlist[i].set_color((0,0,0,0))
+        #make first bar invisible 
+        #for i in range(3):
+            #barlist[i].set_color((0,0,0,0))
+
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         plt.xticks(rotation=45)
         ax.set_facecolor(bg_color)
         plt.savefig(self.Data_path.parent.joinpath("result1.png"),bbox_inches="tight")
 
-        fig2 = plt.figure(2)
-        fig2.patch.set_facecolor(bg_color)
-        plt.pie([15,15,15,55],shadow=True)
-        plt.savefig(self.Data_path.parent.joinpath("result2.png"))
     
+    def load_Kneighbors(self):
+        loadpath = self.Data_path.parents[2].joinpath("trained_kNeighbors.sav")
+        self.classifier = kNeighbors()
+        self.classifier.load_model(str(loadpath))
+
     
+    def get_prediction(self,X):
+        prediction = self.classifier.predict_class(X)
+        return prediction
+    
+    def get_binary_and_coloured(self,finalClass):
+        binaryclass = []
+        colorList = []
+        for classe in finalClass:
+            if classe == "reference":
+                colorList.append((0.09,0.74,0.11,1))
+                binaryclass.append("parfait")
+            else: 
+                colorList.append((0.88,0.16,0.16,1))
+                binaryclass.append("à corriger")
+        colorList = [(0,0,0,0),(0,0,0,0),(0,0,0,0)]+colorList
+        self.colors = colorList
+        self.binaryClass = binaryclass
+
+
     def get_classification(self):
+        self.load_Kneighbors()
         for i in range(len(self.chunked_data)):
-            self.compute_angle_of_chunks(self.chunked_data[i],0)
-            self.compute_angle_of_chunks(self.chunked_data[i],1)
-            self.final_class.append(np.maximum(self.sensor_torso[i],self.sensor_waist[i]))
-        qualitative, colors = self.get_qualitative_and_coloured(self.final_class)
-        self.final_class = qualitative
-        self.colors = colors
-        print(self.angle_memory)
-
-    
-    def save_posture_type(self):
-        for i in range(len(self.final_class)):
-            if self.final_class[i] =='parfait':
-                self.posture_type[self.times[i]] =("parfait")
-            
-            else:
-                gd = self.angle_memory[i][0]
-                aa = self.angle_memory[i][1]
-                if gd <= -2:
-                    if aa>=2:
-                        self.posture_type[self.times[i]]=("courbe_avant_g")
-                    elif aa<=2:
-                        self.posture_type[self.times[i]]=('affale_g')
-
-                elif gd>=2:
-                    if aa>=2:
-                        self.posture_type[self.times[i]] = ("courbe_avant_d")
-                    elif aa<=2:
-                        self.posture_type[self.times[i]] =('affale_d')
-                
-                elif aa>=2:
-                        self.posture_type[self.times[i]] =("courbe_avant")
-                elif aa<=2:
-                        self.posture_type[self.times[i]] =('affale')
-                else:
-                    self.posture_type[self.times[i]] =('parfait')
-        print(self.posture_type)
-        with open(self.Data_path.parent.joinpath("postures.json"), 'w') as filef:
-            json.dump(self.posture_type,filef)
+            X_to_predict = self.compute_angle_of_chunks(self.chunked_data[i])
+            prediction  = self.get_prediction(X_to_predict)
+            self.final_class.append(prediction)
+        self.get_binary_and_coloured(self.final_class)
         
 
-    def get_qualitative_and_coloured(self,numberList):
-        qualitativeList = []
-        colorList = []
-        for number in numberList:
-            if number==1:
-                qualitativeList.append("parfait")
-                colorList.append((0.18,0.40,0.78,1)) #blue
-            elif number == 2:
-                qualitativeList.append("bien")
-                colorList.append((0.24,0.65,0.25,1)) #green
-            elif number == 3:
-                qualitativeList.append("attention")
-                colorList.append((0.96,0.86,0.22,1)) #yellow
-            elif number == 4:
-                qualitativeList.append("à corriger")
-                colorList.append((0.98,0.26,0.15,1)) #red
-            else:
-                qualitativeList.append("")
-                colorList.append((0,0,0,0))
-        colorList = [(0,0,0,0),(0,0,0,0),(0,0,0,0),(0,0,0,0),(0,0,0,0)]+colorList
-        print(qualitativeList)
-        return qualitativeList,colorList
+    def save_posture_type(self):
+        with open(self.Data_path.parent.joinpath("postures.json"), 'w') as filef:
+            json.dump(self.final_class,filef)
 
 
     def analyze_my_data(self):
         self.get_mean_reference()
-        self.load_data()
         self.chunk_the_data()
         self.get_classification()
         self.time_label()
         self.get_figures()
         self.save_posture_type()
 
+
 def main():
-    data = Data("session5","2020_11_22")
+    data = Data("session7","2020_12_01")
     data.get_mean_reference()
-    data.load_data()
     data.chunk_the_data()
     data.get_classification()
     data.time_label()
     data.get_figures()
     data.save_posture_type()
+
+    
 
 
 if __name__ == '__main__':
