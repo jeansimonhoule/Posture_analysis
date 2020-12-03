@@ -11,7 +11,8 @@ class Accelerometer:
     "Class defining an acceleration sensor"
 
     def __init__(self):
-        pass
+        self.reset = False
+        self.stop = False
 
     def setPort(self,portname, baudrate):
         """Sets the usb port on which the radio receptor is connected"""
@@ -66,7 +67,7 @@ class Accelerometer:
     def create_folder(self):
         #get date of capture
         date = datetime.datetime.now().strftime("%Y_%m_%d")
-
+        self.date = date
         #create the folder named after the day of capture
         path = Path(os.path.abspath(__file__))
         path = path.parent.joinpath("SAVED_DATA").joinpath(str(date))
@@ -127,24 +128,56 @@ class Accelerometer:
             ref_time = time.time()-start
 
 
-    def save_data(self):
+    def start_data(self):
         self.setPort('COM4',9600)
-        self.check_for_heading(mode='start')
+        self.reset_microbit()
+        self.check_for_heading(mode='in session')
         print("Recording starts now...")
+
+    def save_loop(self):
+        self.getAcceleration()
+        print(self.acceleration)
+        if self.acceleration[0] == 'sensor':
+            self.check_for_heading(mode='in_session')
+        else:
+            self.write_data_to_csv(self.data_path,self.acceleration)
+
+
+    def reset_microbit(self):
+        flag = "$"
+        flag = flag.encode('utf-8')
+        self.port.write(flag)
+
+    def save_data(self):
+        self.start_data()
         while True:
-            self.getAcceleration()
-            print(self.acceleration)
-            if self.acceleration[0] == 'sensor':
-                self.check_for_heading(mode='in_session')
-            else:
-                self.write_data_to_csv(self.data_path,self.acceleration)
+            self.save_loop()
+            if self.reset==True:
+                self.reset_microbit()
+                print("reset..")
+                self.reset==False
+            if self.stop == True:
+                self.stop = False
+                break
 
 
-
-    
 def main():
     testacc = Accelerometer()
-    testacc.save_data()
+    testacc.start_data()
+    i=0
+    while True:
+        testacc.save_loop()
+        i+=1
+        if i == 10:
+            testacc.stop=True
+        if testacc.reset==True:
+            testacc.reset_microbit()
+            print("reset..")
+            testacc.reset==False
+        if testacc.stop == True:
+            testacc.stop = False
+            break
+            
 
 if __name__ == "__main__":
     main()

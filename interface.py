@@ -26,9 +26,10 @@ from data_analysis import Data
 class MainWindow(Screen):
     pass
 
+class UserWindow(Screen):
+    pass
+
 class AnalyseWindow(Screen):
-    """firstchoice = ObjectProperty(None)
-    secondchoice = ObjectProperty(None)"""
     fichiers = ObjectProperty(list)
     confirmDate = ObjectProperty(None)
     dropdown = ObjectProperty(None)
@@ -70,6 +71,11 @@ class AnalyseWindow(Screen):
         self.selected_session = (self.confirmDate.text,self.btnSession.text)
         data = Data(self.selected_session[1],self.selected_session[0])
         data.analyze_my_data()
+
+    def on_leave(self):
+        self.confirmDate.text = ""
+        self.btnSession.text = "session"
+        self.btnSession.background_color = 0.05,0.25,0.5,1
 
 
 class ResultWindow(Screen):
@@ -119,42 +125,36 @@ class ResultWindow(Screen):
 class MesureWindow(Screen):
     mesureState = ObjectProperty(None)
     acc = Accelerometer()
-    def mesure_Btn(self):
-        t2 = Thread(target=self.acc.save_data)
-        t2.start()
-        self.mesureState.text = "Currently analysing your posture..."
+    analysisBtn = ObjectProperty(None)
+    analyse = ObjectProperty(None)
 
-
-
-class ReferenceWindow(Screen):
-    count = NumericProperty(30) # countdown de 30 secondes
-    referenceLabel = ObjectProperty(None)
-    #progBar = ObjectProperty(None)
-    capteur_ref = Accelerometer()
-
-    #click est zéro lorsque on entre sur la page
     def on_enter(self):
-        self.click = 0
+        self.click  = 0
 
-    #création d'un thread afin de ne pas freeze le GUI
-    def getRef_btn(self):
-        self.click += 1
-        if self.click <= 1:
-            self.countdown()
-            t = Thread(target=self.capteur_ref.save_reference)
-            t.start()
-        else:
-            pass
+    def mesure_Btn(self):
+        self.click+=1
+        if self.click == 1 :
+            t2 = Thread(target=self.acc.save_data)
+            t2.start()
+            self.mesureState.text = "Currently analysing your posture..."
+            self.analysisBtn.text = "Stop analysis"
+            self.analysisBtn.background_color = (1,0,0,1)
 
-    def countdown(self):
-        self.event = Clock.schedule_interval(self.update_label,1)
+        if self.click ==2 :
+            self.acc.stop = True
+            self.mesureState.text = "Posture analysis has been stopped"
+            self.analysisBtn.text = "See the results"
+            self.analysisBtn.background_color = (0,0,0,1)
 
-    def update_label(self,time_limit):
-        self.referenceLabel.text = str(self.count)
-        self.count = self.count -1
-        if self.count < 0:
-            self.referenceLabel.text = "La référence est enregistrée"
-            self.event.cancel()
+        if self.click == 3 : 
+            self.analyse.get_possible_file()
+            day = self.acc.date
+            self.analyse.available_session(day)
+            session = self.analyse.sessions[-1]
+            self.analyse.confirmDate.text = day
+            self.analyse.btnSession.text = session
+            self.analyse.btnSession.background_color = 0,1,0,1
+            kv.current = "analyse"
 
     
 class WindowManager(ScreenManager):
@@ -169,10 +169,7 @@ def invalidFile():
 
 
 
-
 kv = Builder.load_file("my.kv")
-
-#sm = WindowManager()
 
 
 class Posture_AnalysisApp(App):

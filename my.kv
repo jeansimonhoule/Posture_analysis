@@ -19,6 +19,8 @@ WindowManager:
     id: sm
     MainWindow:
         id: main
+    UserWindow:
+        id: user
     AnalyseWindow:
         id: analyse
         main:main
@@ -28,9 +30,10 @@ WindowManager:
         analyse: analyse
     MesureWindow:
         id: mesure
-    ReferenceWindow:
-        id: reference
+        analyse: analyse
     
+
+
 
 <MainWindow>:
     name: "main"
@@ -65,14 +68,7 @@ WindowManager:
                 height:0.1*(root.height)
 
             Button:
-                id: posturamaxima
-                #canvas.before:
-                    #Color:
-                     #   rgba: 1, 1, 1, 1
-                    #Line:
-                     #   width: 1
-                      #  rectangle: self.x, self.y, self.width, self.height
-                
+                id: posturamaxima  
                 markup:True
                 background_color: 0.1,0.3,0.4,0
                 pos_hint:{"x":0,"top":1}
@@ -89,9 +85,9 @@ WindowManager:
 
             
         GridLayout:
-            cols:2
-            spacing:10,10
-            padding:10,30,50,10
+            cols:1
+            spacing:30,30
+            padding:100,0,100,100
             canvas.before:
                 Color:
                     rgba: 0.36,0.75,1,0.7
@@ -99,16 +95,21 @@ WindowManager:
                     size: self.size
                     pos: self.pos
             
-
-            Image:
-                id: image-analyse
-                source:'pexels-photomix-company-95916.jpg'
-                
+            Label:
+                id:welcomeLabel
+                text: "Hi USER, \nWelcome to this great posture analysis application. What do you want to do today?"
+                size: self.texture_size
+                height: 0.1*(root.height)
+                pos_hint:{"x":0,"top":1}
+                valign: "top"
 
             Button:
                 background_color: 0,0,0,0
                 font_size: (root.width**2 + root.height**2) / 15**4
                 text: "Analyser"
+                size: self.texture_size
+                height: 0.1 * root.height
+
                 canvas.before:
                     Color:
                         rgba: (0,0.5,0,0.8) if self.state=='normal' else (0,.8,.7,1)  # visual feedback of press
@@ -119,11 +120,6 @@ WindowManager:
                 on_release:
                     root.manager.transition.direction = "left"
                     app.root.current = 'analyse'
-
-                    
-            Image:
-                id: image-mesure
-                source:'pexels-pixabay-53404.jpg'
             
 
             Button:
@@ -140,29 +136,7 @@ WindowManager:
                 on_release:
                     root.manager.transition.direction = "left"
                     app.root.current = 'mesure'
-
-            Image:
-                id: image-reference
-                source:'pexels-david-bartus-690779.jpg'
-                
-
-            Button:
-                background_color: 0,0,0,0
-                font_size: (root.width**2 + root.height**2) / 15**4
-                text: "Reference"
-                canvas.before:
-                    Color:
-                        rgba: (0.5,0.5,0.5,1)  if self.state=='normal' else (0,.8,.7,1)  # visual feedback of press
-                    RoundedRectangle:
-                        pos: self.pos
-                        size: self.size
-                        radius: [50,]
-                on_release:
-                    root.manager.transition.direction = "left"
-                    app.root.current = 'reference'
-
-          
-                
+                          
 
 <AnalyseWindow>:
     name: "analyse"
@@ -180,6 +154,12 @@ WindowManager:
         id:grid-main-analyse
         cols:1
         size:root.width,root.height
+        canvas.before:
+            Color:
+                rgba: 0.64,0.77,0.89,1
+            Rectangle:
+                size: self.size
+                pos: self.pos
 
         GridLayout:
             cols:2
@@ -205,12 +185,6 @@ WindowManager:
 
             Button:
                 id: posturamaxima
-                #canvas.before:
-                    #Color:
-                     #   rgba: 1, 1, 1, 1
-                    #Line:
-                     #   width: 1
-                      #  rectangle: self.x, self.y, self.width, self.height
                 
                 markup:True
                 background_color: 0.1,0.3,0.4,0
@@ -223,6 +197,9 @@ WindowManager:
                 padding_x: 20
                 width:0.9*(root.width)
                 height:0.1*(root.height)
+                on_release:
+                    root.manager.transition.direction = "left"
+                    app.root.current = 'main'
             
 
         GridLayout:
@@ -274,7 +251,7 @@ WindowManager:
                 #on_parent: dropdown.dismiss()
                 size_hint:(None,None)
                 height: '50dp'
-                width:0.3*root.width
+                width:0.6*root.width
                 pos_hint:{"top":1}
                 background_color: 0.1,0.3,0.8,1
 
@@ -343,13 +320,6 @@ WindowManager:
 
             Button:
                 id: posturamaxima
-                #canvas.before:
-                    #Color:
-                     #   rgba: 1, 1, 1, 1
-                    #Line:
-                     #   width: 1
-                      #  rectangle: self.x, self.y, self.width, self.height
-                
                 markup:True
                 background_color: 0.1,0.3,0.4,0
                 pos_hint:{"x":0,"top":1}
@@ -419,47 +389,69 @@ WindowManager:
 <MesureWindow>:
     name: "mesure"
     mesureState: mesureState
+    analysisBtn: analysisBtn
     
     GridLayout:
+        canvas.before:
+            Color:
+                rgba: 0.88,0.88,0.88,1
+            Rectangle:
+                size: self.size
+                pos: self.pos
         rows:2
 
-        Button:
-            text: "Démarrer une session d'analyse"
-            on_release: 
-                root.mesure_Btn()
-
-        Label: 
-            id: mesureState
-            text:" "
-
-
-
-
-
-<ReferenceWindow>:
-    name: "reference"
-    referenceLabel: referenceLabel
-   
-
-    GridLayout: 
-        rows:3
-
-        Button:
-            text: "Get my reference"
-            on_release: 
-                background_color = 0,1,0,1
-                root.getRef_btn()
-
-        Label: 
-            id: referenceLabel
-            text: ""
-
-
-
+        GridLayout:
+            cols:2
+            row_default_height:50
+            row_force_default:True
+            size_hint_y:None
+            height:self.minimum_height
+            padding:0,10,0,0
     
+            canvas.before:
+                Color:
+                    rgba: 0.05,0.25,0.5,1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            
+            Image:
+                id: logo
+                source:'1488492636-basicman09_81758.png'
+                size_hint:(None,None)
+                width:0.1*(root.width)
+                height:0.1*(root.height)
 
+            Button:
+                id: posturamaxima
+                markup:True
+                background_color: 0.1,0.3,0.4,0
+                pos_hint:{"x":0,"top":1}
+                size_hint: (None,None)
+                font_size: (root.width**2 + root.height**2) / 14**4
+                text: "[b]Postura maxima-> Mesure[/b]"
+                text_size: self.size
+                halign: "left"
+                padding_x: 20
+                width:0.9*(root.width)
+                height:0.1*(root.height)
+                on_release: app.root.current = "main"
 
-    
+        FloatLayout:
+
+            Button:
+                id: analysisBtn
+                text: "Start analysis"
+                background_color: 0,1,0,1
+                size_hint:(0.5,0.2)
+                pos_hint:{"x":0.25,"y":0.6}
+
+                on_release: 
+                    root.mesure_Btn()
+
+            Label: 
+                id: mesureState
+                text:" "
 
 
 
