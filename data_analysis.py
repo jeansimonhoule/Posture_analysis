@@ -166,8 +166,11 @@ class Data:
         
 
     def save_posture_type(self):
+        for i,time in enumerate(self.times):
+            self.posture_type[time] = self.final_class[i]
+
         with open(self.Data_path.parent.joinpath("postures.json"), 'w') as filef:
-            json.dump(self.final_class,filef)
+            json.dump(self.posture_type,filef)
 
 
     def analyze_my_data(self):

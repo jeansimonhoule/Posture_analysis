@@ -72,8 +72,6 @@ class AnalyseWindow(Screen):
         data.analyze_my_data()
 
 
-
-
 class ResultWindow(Screen):
     source1 = ObjectProperty(None)
     source2 = ObjectProperty(None)
@@ -89,10 +87,11 @@ class ResultWindow(Screen):
         self.path = Path(os.path.abspath(__file__)).parent.joinpath("SAVED_DATA").joinpath(self.analyse.selected_session[0]).joinpath(self.analyse.selected_session[1])
         self.resultLabel.text="[color=330000]Good! \nYour posture was as good as tonymass9![/color]"
         self.source1.source = str(self.path.joinpath('result1.png'))
-        self.source2.source = str(self.path.joinpath('result2.png'))
         self.available_time()
         self.get_posture()
         self.create_dropdown()
+        self.source2.source =  str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath(self.postures[self.times[0]]+".png"))
+        setattr(self.hourLabel,'text',"[color=3333ff]"+self.times[0]+"[/color]")
 
     def available_time(self):
         with open(self.path.joinpath('times.json'), 'r') as f:
@@ -124,10 +123,6 @@ class MesureWindow(Screen):
         t2 = Thread(target=self.acc.save_data)
         t2.start()
         self.mesureState.text = "Currently analysing your posture..."
-
-
-    
-    
 
 
 
