@@ -72,7 +72,6 @@ class AnalyseWindow(Screen):
         self.sessions = os.listdir(path)
 
     def confirm_date_btn(self):
-        print(self.confirmDate.text)
         if self.confirmDate.text in self.fichiers:
             self.available_session(self.confirmDate.text)
             self.create_dropdown()
@@ -93,7 +92,6 @@ class AnalyseWindow(Screen):
 
     def lancer_analyse_btn(self):
         self.selected_session = (self.confirmDate.text,self.btnSession.text)
-        print("Jean",self.selected_session)
         data = Data(self.selected_session[1],self.selected_session[0])
         data.analyze_my_data()
 
@@ -218,6 +216,7 @@ class MesureWindow(Screen):
         self.event = Clock.schedule_interval(self.update_label,0.5)
 
     def update_label(self,time_limit):
+        #Function update_label is called every .5 sec, and the stickmans positions is updated by selecting the next image
         self.count+=1
         self.image_analyse.source = str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath("stickmans").joinpath(str(self.count)+".png"))
         if self.count ==28:

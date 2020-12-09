@@ -182,22 +182,3 @@ class Accelerometer:
                 break
 
 
-def main():
-    testacc = Accelerometer()
-    testacc.start_data()
-    i=0
-    while True:
-        testacc.save_loop()
-        if i == 10:
-            testacc.stop=True
-        if testacc.reset==True:
-            testacc.reset_microbit()
-            print("reset..")
-            testacc.reset==False
-        if testacc.stop == True:
-            testacc.stop = False
-            break
-            
-
-if __name__ == "__main__":
-    main()

@@ -23,31 +23,22 @@ class Data:
         self.day=day
         self.session = session
         self.Data_path = root.parent.joinpath("SAVED_DATA").joinpath(User.currentUser).joinpath(self.day).joinpath(self.session).joinpath("DATA.csv") 
-        self.Reference_path = self.Data_path.parents[2].joinpath("REFERENCE.csv")
         
-        self.epoch_lenght = 60 # 300 secondes car nous voulons des périodes de 5 minutes
         self.column_names = ["sensor","time","ax","ay","az"]
         self.posture_type = {}
         self.final_class = []
-        self.angle_reference={}
         
         self.data = pd.read_csv(self.Data_path,names=self.column_names)
+        self.epoch_lenght = self.decide_epoch_lenght()
 
-    def get_mean_reference(self):
-        "Compute mean acceleration from reference.csv file"
-        ref_data = pd.read_csv(self.Reference_path,names=self.column_names)
-        reference= {}
-        for i in range(0,2):
-            reference[(i,"ax")] = ref_data[ref_data['sensor'] == i]['ax'].mean()
-            reference[(i,"ay")] = ref_data[ref_data['sensor'] == i]['ay'].mean()
-            reference[(i,"az")] = ref_data[ref_data['sensor'] == i]['az'].mean()
-
-        self.angle_reference['Torso_gd'] = np.rad2deg(np.arctan(reference[(0,"ax")]/reference[(0,"ay")]))
-        self.angle_reference['Torso_aa'] = np.rad2deg(np.arctan(reference[(0,"az")]/reference[(0,"ay")]))
-        self.angle_reference['Waist_gd'] = np.rad2deg(np.arctan(reference[(1,"ax")]/reference[(1,"ay")]))
-        self.angle_reference['Waist_aa'] = np.rad2deg(np.arctan(reference[(1,"az")]/reference[(1,"ay")]))
-        
-        
+    def decide_epoch_lenght(self):
+        #we want at least 4 time period and max 5 minutes 
+        max_time = self.data.time.max()
+        epoch_length = np.ceil(max_time/4)
+        if epoch_length > 300:
+            epoch_length = 300
+        print(epoch_length)
+        return epoch_length
     
     def chunk_the_data(self):
 
@@ -124,7 +115,7 @@ class Data:
         plt.xticks(rotation=45)
         plt.yticks(fontsize=15)
         ax.set_facecolor(bg_color)
-        plt.savefig(self.Data_path.parent.joinpath("result1.png"),bbox_inches="tight")
+        plt.savefig(self.Data_path.parent.joinpath("result1.png"),bbox_inches="tight",facecolor=bg_color)
         plt.close()
     
     def load_Kneighbors(self):
@@ -176,17 +167,3 @@ class Data:
         self.get_figures()
         self.save_posture_type()
 
-
-def main():
-    data = Data("session12","2020_12_08")
-    data.chunk_the_data()
-    data.get_classification()
-    data.time_label()
-    data.get_figures()
-    data.save_posture_type()
-
-    
-
-
-if __name__ == '__main__':
-    main()

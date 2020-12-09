@@ -11,7 +11,7 @@ class Message:
     def overall_posture(self):
         strike = 0
         # the bareme represent the max number of period where the user can have a bad posture before considering
-        # the session was bad overall
+        # that the session was bad or horrible overall.
         bareme_good = 0.2*len(self.postureType.values())
         bareme_bad = 0.5*len(self.postureType.values())
         for value in self.postureType.values():
