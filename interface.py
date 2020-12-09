@@ -101,7 +101,10 @@ class AnalyseWindow(Screen):
         self.confirmDate.text = ""
         self.btnSession.text = "session \u039E"
         self.btnSession.background_color = 0.05,0.25,0.5,1
-        self.dropdown.clear_widgets()
+        try:
+            self.dropdown.clear_widgets()
+        except AttributeError:
+            pass
 
 
 class ResultWindow(Screen):
@@ -150,8 +153,10 @@ class ResultWindow(Screen):
         setattr(self.postureLabel,'text',"[color=3333ff]"+self.postures[x]+"[/color]")
 
     def on_leave(self):
-        self.dropdown2.clear_widgets()
-
+        try:
+            self.dropdown2.clear_widgets()
+        except AttributeError:
+            pass
     
 
 class MesureWindow(Screen):
@@ -185,7 +190,7 @@ class MesureWindow(Screen):
         if self.click ==2 :
             self.event.cancel()
             self.acc.stop = True
-            self.mesureState.text = "Posture analysis is completed"
+            self.mesureState.text = "[color=000000]Posture analysis is completed[/color]"
             self.analysisBtn.text = "See the results"
             self.analysisBtn.background_color = (0,0,0,1)
             self.image_analyse.source = str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath("blank.png"))
@@ -210,21 +215,13 @@ class MesureWindow(Screen):
         self.mesureState.text = ""
 
     def countdown(self):
-        self.event = Clock.schedule_interval(self.update_label,1)
+        self.event = Clock.schedule_interval(self.update_label,0.5)
 
     def update_label(self,time_limit):
-        if self.count ==1:
-            imageName = "perfect.png"
-        elif self.count == 2:
-            imageName = "blank.png"
-        elif self.count ==3:
-            imageName="perfect.png"
-            self.count = 0
-        else:
-            pass
         self.count+=1
-        self.image_analyse.source = str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath(imageName))
-
+        self.image_analyse.source = str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath("stickmans").joinpath(str(self.count)+".png"))
+        if self.count ==28:
+            self.count = 0
         
     
 class WindowManager(ScreenManager):
