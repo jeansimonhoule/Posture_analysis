@@ -17,30 +17,110 @@
 
 WindowManager:
     id: sm
-    MainWindow:
-        id: main
     UserWindow:
         id: user
+    MainWindow:
+        id: main
+        user:user
     AnalyseWindow:
         id: analyse
         main:main
         sm:sm
+        user:user
     ResultWindow:
         id: result
         analyse: analyse
+        user:user
     MesureWindow:
         id: mesure
         analyse: analyse
+        user:user
     
+    
+<UserWindow>:
+    name: "user"
+    loginBtn: loginBtn
+    inputID:inputID
+
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: 0.05,0.25,0.5,1
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        Image:
+            id: logo
+            source:'1488492636-basicman09_81758.png'
+            size_hint:(None,None)
+            width:0.5*(root.width)
+            height:0.4*(root.height)
+            pos_hint:{"x":0.25,"y":0.57}
+
+        Label:
+            id: logoName  
+            markup:True
+            background_color: 0,0,0,0
+            pos_hint:{"x":0.25,"y":0.45}
+            size_hint: (None,None)
+            font_size: (root.width**2 + root.height**2) / 14**4
+            text: "[b]Postura maxima[/b]"
+            text_size: self.size
+            valign:"middle"
+            halign:"center"
+            width:0.5*root.width
+            height:0.1*(root.height)
+
+        Label:
+            text: "ID:"
+            background_color: 0,0,0,0
+            pos_hint:{"x":0.265,"y":0.3}
+            size_hint: (None,None)
+            font_size: (root.width**2 + root.height**2) / 15**4
+            text_size: self.size
+            valign:"middle"
+            halign:"center"
+            height:root.height/16
+
+
+        TextInput:
+            id:inputID
+            pos_hint:{"x":0.365,"y":0.3}
+            size_hint: (None,None)
+            text_size: self.size
+            multiline: False
+            valign:"middle"
+            halign:"center"
+            height:root.height/16
+            width:root.width/3
+
+        Button:
+            id:loginBtn
+            text: "Log in"
+            pos_hint:{"x":0.3125,"y":0.15}
+            size_hint: (None,None)
+            text_size: self.size
+            valign:"middle"
+            halign:"center"
+            height:root.height/12
+            width:3*root.width/8
+            on_release:
+                root.log_in()
+                root.manager.transition.direction = "up"
+        
+    
+                
+                
+
 
 
 
 <MainWindow>:
     name: "main"
-    imagee: "image-analyse"
+    welcomeLabel : welcomeLabel
 
     GridLayout: 
-        
         cols:1
         size:root.width,root.height
 
@@ -81,8 +161,7 @@ WindowManager:
                 width:0.9*(root.width)
                 height:0.1*(root.height)
                 on_release: background_color = (1,1,1,1)
-                
-
+            
             
         GridLayout:
             cols:1
@@ -90,29 +169,31 @@ WindowManager:
             padding:100,0,100,100
             canvas.before:
                 Color:
-                    rgba: 0.36,0.75,1,0.7
+                    rgba: 0.85,0.90,1,1
                 Rectangle:
                     size: self.size
                     pos: self.pos
             
             Label:
                 id:welcomeLabel
-                text: "Hi USER, \nWelcome to this great posture analysis application. What do you want to do today?"
+                markup:True
                 size: self.texture_size
+                font_size: (root.width**2 + root.height**2) / 15**4
                 height: 0.1*(root.height)
                 pos_hint:{"x":0,"top":1}
                 valign: "top"
+                
 
             Button:
                 background_color: 0,0,0,0
                 font_size: (root.width**2 + root.height**2) / 15**4
-                text: "Analyser"
+                text: "See previous analysis results"
                 size: self.texture_size
                 height: 0.1 * root.height
 
                 canvas.before:
                     Color:
-                        rgba: (0,0.5,0,0.8) if self.state=='normal' else (0,.8,.7,1)  # visual feedback of press
+                        rgba: (0.21,0.53,0.84,1) if self.state=='normal' else (0,.8,.7,1)  # visual feedback of press
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
@@ -125,10 +206,11 @@ WindowManager:
             Button:
                 background_color: 0,0,0,0
                 font_size: (root.width**2 + root.height**2) / 15**4
-                text: "Mesurer"
+                markup: True
+                text: "Start a new posture analysis"
                 canvas.before:
                     Color:
-                        rgba: (0.7,0.1,0.2,0.9) if self.state=='normal' else (0,.8,.7,1)  # visual feedback of press
+                        rgba: (0.21,0.53,0.84,1) if self.state=='normal' else (0,.8,.7,1)  # visual feedback of press
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
@@ -136,6 +218,21 @@ WindowManager:
                 on_release:
                     root.manager.transition.direction = "left"
                     app.root.current = 'mesure'
+
+    FloatLayout:
+        Button:
+            text: "Log out"
+            pos_hint:{"x":0.8,"y":0.025}
+            size_hint: (None,None)
+            text_size: self.size
+            valign:"middle"
+            halign:"center"
+            height:root.height/12
+            width:3*root.width/17
+            background_color: 1,0,0,1
+            on_release:
+                root.manager.transition.direction = "down"
+                app.root.current = 'user'
                           
 
 <AnalyseWindow>:
@@ -156,7 +253,7 @@ WindowManager:
         size:root.width,root.height
         canvas.before:
             Color:
-                rgba: 0.64,0.77,0.89,1
+                rgba: 0.85,0.90,1,1
             Rectangle:
                 size: self.size
                 pos: self.pos
@@ -191,7 +288,7 @@ WindowManager:
                 pos_hint:{"x":0,"top":1}
                 size_hint: (None,None)
                 font_size: (root.width**2 + root.height**2) / 14**4
-                text: "[b]Postura maxima-> Analysis[/b]"
+                text: "[b]Postura maxima-> Results[/b]"
                 text_size: self.size
                 halign: "left"
                 padding_x: 20
@@ -212,7 +309,8 @@ WindowManager:
             height:self.minimum_height
             
             Label:
-                text: "Insert date in the format (AAAA_MM_DD): "
+                markup:True
+                text: "[color=000000]Insert date in the format (AAAA_MM_DD):[/color] "
                 text_size: self.size
                 pos_hint:{"x":0}
                 valign:"center"
@@ -225,7 +323,7 @@ WindowManager:
                 height:"50dp"
 
             Button:
-                text:"ok"
+                text:"Validate"
                 on_release:
                     root.confirm_date_btn()
                 
@@ -240,15 +338,15 @@ WindowManager:
             height:self.minimum_height
 
             Label:
-                text: "Select a section: "
+                markup:True
+                text: "[color=000000]Select a section:[/color] "
                 text_size: self.size
                 pos_hint:{"x":0}
                 valign:"top"
 
             Button:
                 id: btnSession
-                text: 'Session'
-                #on_parent: dropdown.dismiss()
+                text: 'Session \u039E'
                 size_hint:(None,None)
                 height: '50dp'
                 width:0.6*root.width
@@ -286,11 +384,12 @@ WindowManager:
     btnResult: btnResult
     hourLabel:hourLabel
     resultLabel: resultLabel
+    postureLabel:postureLabel
     
     GridLayout:
         canvas.before:
             Color:
-                rgba: 0.88,0.88,0.88,1
+                rgba: 0.85,0.9,1,1
             Rectangle:
                 size: self.size
                 pos: self.pos
@@ -350,19 +449,28 @@ WindowManager:
                 Label:
                     id:hourLabel
                     markup:True
+                    font_size: 25
                     size_hint:(0.2,0.1)
                     pos_hint:{"x":0.4,"y":0.9}
                     background_color: 0.3,0.3,1,1
 
+                Label:
+                    id:postureLabel
+                    markup:True
+                    font_size: 25
+                    size_hint:(0.3,0.1)
+                    pos_hint:{"x":0.35,"y":0.8}
+                    background_color: 0.3,0.3,1,1
+
                 Image:
                     id: source2
-                    size_hint:(0.8,0.8)
-                    pos_hint:{"x":0.1,"y":0.16}
+                    size_hint:(0.6,0.6)
+                    pos_hint:{"x":0.2,"y":0.2}
                     
                 Button:
                     id: btnResult
-                    text: "Changer d'heure"
-                    background_color: 0.1,0.8,0.1,1
+                    text: "Change time period \u039E"
+                    background_color: 0.3,0.3,1,1
                     size_hint:(0.5,0.08)
                     pos_hint:{"x":0.25,"y":0.05}
                     
@@ -376,12 +484,13 @@ WindowManager:
                 Label:
                     id: resultLabel
                     #text: 2*"[color=3333ff]René Lévesque est un homme d'État québécois né le 24 août 1922 à Campbellton2 au Canada et mort le 1er novembre 1987 à Verdun. D'abord connu comme journaliste, animateur de radio et de télévision, il est un artisan éminent de la Révolution tranquille, de la nationalisation de l'électricité au Québec et un ardent défenseur de la souveraineté politique du Québec. À la tête du Parti québécois, un parti indépendantiste, il est premier ministre du Québec de 1976 à 1985. Durant son mandat il tient le premier référendum sur l'indépendance du Québec du Canada en 1980.[/color]"
-                    font_size: 20
+                    font_size: 16
                     markup: True
                     size_hint_x: 1.0
                     size_hint_y: None
-                    text_size: self.width, None
+                    text_size: 0.97*self.width, None
                     height: self.texture_size[1]
+                    halign: "justify"
                 
 
             
@@ -390,11 +499,13 @@ WindowManager:
     name: "mesure"
     mesureState: mesureState
     analysisBtn: analysisBtn
+    image_analyse:image_analyse
+    image_command:image_command
     
     GridLayout:
         canvas.before:
             Color:
-                rgba: 0.88,0.88,0.88,1
+                rgba: 0.85,0.90,1,1
             Rectangle:
                 size: self.size
                 pos: self.pos
@@ -429,7 +540,7 @@ WindowManager:
                 pos_hint:{"x":0,"top":1}
                 size_hint: (None,None)
                 font_size: (root.width**2 + root.height**2) / 14**4
-                text: "[b]Postura maxima-> Mesure[/b]"
+                text: "[b]Postura maxima-> Analysis[/b]"
                 text_size: self.size
                 halign: "left"
                 padding_x: 20
@@ -444,14 +555,24 @@ WindowManager:
                 text: "Start analysis"
                 background_color: 0,1,0,1
                 size_hint:(0.5,0.2)
-                pos_hint:{"x":0.25,"y":0.6}
-
+                pos_hint:{"x":0.25,"y":0.65}
                 on_release: 
                     root.mesure_Btn()
 
             Label: 
                 id: mesureState
+                markup:True
                 text:" "
+
+            Image:
+                id: image_analyse
+                size_hint:(0.3,0.3)
+                pos_hint:{"x":0.35,"y":0.1}
+
+            Image:
+                id:image_command
+                size_hint:(1.5,0.6)
+                pos_hint:{"x":-.25,"y":0}
 
 
 

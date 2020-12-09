@@ -1,9 +1,11 @@
 import serial
+import serial.tools.list_ports
 import time
 import csv
 import datetime
 import os
 from pathlib import Path
+from user import User
 
 
 
@@ -13,10 +15,27 @@ class Accelerometer:
     def __init__(self):
         self.reset = False
         self.stop = False
+        self.no_connection = True
 
     def setPort(self,portname, baudrate):
         """Sets the usb port on which the radio receptor is connected"""
-        self.port= serial.Serial(str(portname),baudrate)
+        # by default COM port is COM4, if not found, we take the first communication port available
+        while self.no_connection == True:
+            ports = list(serial.tools.list_ports.comports())
+            if len(ports) > 0:
+                self.no_connection = False 
+        try:
+            print("")
+            self.port= serial.Serial(str(portname),baudrate)
+        except serial.SerialException:
+            try:
+                print("")
+                time.sleep(0.5)
+                ports = list(serial.tools.list_ports.comports())
+                self.port = serial.Serial(str(ports[0][0]))
+            except IndexError:
+                print("Micro:bit not found")
+
 
     def getAcceleration(self):
         """Reads and decode to string the information from the serial port"""
@@ -70,7 +89,7 @@ class Accelerometer:
         self.date = date
         #create the folder named after the day of capture
         path = Path(os.path.abspath(__file__))
-        path = path.parent.joinpath("SAVED_DATA").joinpath(str(date))
+        path = path.parent.joinpath("SAVED_DATA").joinpath(User.currentUser).joinpath(str(date))
         if path.exists() == False:
             os.mkdir(path)
         return path
@@ -129,7 +148,7 @@ class Accelerometer:
 
 
     def start_data(self):
-        self.setPort('COM4',9600)
+        self.setPort('COM3',9600)
         self.reset_microbit()
         self.check_for_heading(mode='in session')
         print("Recording starts now...")
@@ -146,6 +165,7 @@ class Accelerometer:
     def reset_microbit(self):
         flag = "$"
         flag = flag.encode('utf-8')
+        time.sleep(0.5)
         self.port.write(flag)
 
     def save_data(self):
@@ -158,6 +178,7 @@ class Accelerometer:
                 self.reset==False
             if self.stop == True:
                 self.stop = False
+                self.port.close()
                 break
 
 
@@ -167,7 +188,6 @@ def main():
     i=0
     while True:
         testacc.save_loop()
-        i+=1
         if i == 10:
             testacc.stop=True
         if testacc.reset==True:

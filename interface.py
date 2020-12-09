@@ -7,7 +7,7 @@ from kivy.uix.image import Image
 from kivy.core.window import Window
 from kivy.uix.dropdown import DropDown
 from kivy.properties import ObjectProperty
-from kivy.properties import NumericProperty
+from kivy.properties import NumericProperty, StringProperty
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
@@ -19,15 +19,38 @@ from pathlib import Path
 from accelerometer import Accelerometer
 from threading import Thread
 from data_analysis import Data
+from user import User
+from message import Message
 
 
+class UserWindow(Screen):
+    inputID = ObjectProperty(None)
+    
+    def log_in(self):
+        if self.inputID.text == "":
+            pass
+        else:
+            self.userID = self.inputID.text
+            self.create_user()
+            User.currentUser = self.userID
+            kv.current = "main"
+    
+    def create_user(self):
+        path = Path(os.path.abspath(__file__)).parent.joinpath("SAVED_DATA")
+        if self.userID.lower() not in os.listdir(path):
+            os.mkdir(str(path.joinpath(self.userID.lower())))
+
+    def on_leave(self):
+        self.inputID.text = ""
 
 
 class MainWindow(Screen):
-    pass
+    user = ObjectProperty(None)
+    welcomeLabel = ObjectProperty(None)
+    userID = ObjectProperty(User)
 
-class UserWindow(Screen):
-    pass
+    def on_enter(self):
+        self.welcomeLabel.text = "[color=000000]Hi [b]"+User.currentUser+",[/b]\nWelcome to this great posture analysis application. \nWhat do you want to do today?[/color]"
 
 class AnalyseWindow(Screen):
     fichiers = ObjectProperty(list)
@@ -35,16 +58,17 @@ class AnalyseWindow(Screen):
     dropdown = ObjectProperty(None)
     btnSession = ObjectProperty(None)
     selected_session = ObjectProperty(None)
+    user = ObjectProperty(None)
     
-    def on_pre_enter(self,*args):
+    def on_enter(self,*args):
         self.get_possible_file()
 
     def get_possible_file(self):
-        path = Path(os.path.abspath(__file__)).parent.joinpath("SAVED_DATA")
+        path = Path(os.path.abspath(__file__)).parent.joinpath("SAVED_DATA").joinpath(User.currentUser)
         self.fichiers = os.listdir(path)
     
     def available_session(self,day):
-        path = Path(os.path.abspath(__file__)).parent.joinpath("SAVED_DATA").joinpath(day)
+        path = Path(os.path.abspath(__file__)).parent.joinpath("SAVED_DATA").joinpath(User.currentUser).joinpath(day)
         self.sessions = os.listdir(path)
 
     def confirm_date_btn(self):
@@ -69,13 +93,15 @@ class AnalyseWindow(Screen):
 
     def lancer_analyse_btn(self):
         self.selected_session = (self.confirmDate.text,self.btnSession.text)
+        print("Jean",self.selected_session)
         data = Data(self.selected_session[1],self.selected_session[0])
         data.analyze_my_data()
 
     def on_leave(self):
         self.confirmDate.text = ""
-        self.btnSession.text = "session"
+        self.btnSession.text = "session \u039E"
         self.btnSession.background_color = 0.05,0.25,0.5,1
+        self.dropdown.clear_widgets()
 
 
 class ResultWindow(Screen):
@@ -86,18 +112,20 @@ class ResultWindow(Screen):
     btnResult = ObjectProperty(None)
     hourLabel = ObjectProperty(None)
     resultLabel= ObjectProperty(None)
+    postureLabel = ObjectProperty(None)
 
     
     def on_enter(self):
-        print("x:", self.analyse.selected_session)
-        self.path = Path(os.path.abspath(__file__)).parent.joinpath("SAVED_DATA").joinpath(self.analyse.selected_session[0]).joinpath(self.analyse.selected_session[1])
-        self.resultLabel.text="[color=330000]Good! \nYour posture was as good as tonymass9![/color]"
+        self.path = Path(os.path.abspath(__file__)).parent.joinpath("SAVED_DATA").joinpath(User.currentUser).joinpath(self.analyse.selected_session[0]).joinpath(self.analyse.selected_session[1])
         self.source1.source = str(self.path.joinpath('result1.png'))
         self.available_time()
         self.get_posture()
         self.create_dropdown()
         self.source2.source =  str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath(self.postures[self.times[0]]+".png"))
         setattr(self.hourLabel,'text',"[color=3333ff]"+self.times[0]+"[/color]")
+        setattr(self.postureLabel,'text',"[color=3333ff]"+self.postures[self.times[0]]+"[/color]")
+        msg = Message(self.postures,User.currentUser)
+        self.resultLabel.text="[color=330000]"+msg.message+"[/color]"
 
     def available_time(self):
         with open(self.path.joinpath('times.json'), 'r') as f:
@@ -117,9 +145,13 @@ class ResultWindow(Screen):
         self.dropdown2.bind(on_select=lambda instance, x: self.display_posture(x))
 
     def display_posture(self,x):
-        #setattr(self.btnResult,'text',x)
         self.source2.source = str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath(self.postures[x]+".png"))
         setattr(self.hourLabel,'text',"[color=3333ff]"+x+"[/color]")
+        setattr(self.postureLabel,'text',"[color=3333ff]"+self.postures[x]+"[/color]")
+
+    def on_leave(self):
+        self.dropdown2.clear_widgets()
+
     
 
 class MesureWindow(Screen):
@@ -127,35 +159,73 @@ class MesureWindow(Screen):
     acc = Accelerometer()
     analysisBtn = ObjectProperty(None)
     analyse = ObjectProperty(None)
+    image_analyse = ObjectProperty(None)
+    count = NumericProperty(1)
+    image_command = ObjectProperty(None)
+
+    def on_pre_enter(self):
+        self.image_analyse.source = str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath("blank.png"))
+        self.image_command.source = str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath("command.png"))
 
     def on_enter(self):
         self.click  = 0
+        self.acc.stop = False
 
     def mesure_Btn(self):
         self.click+=1
         if self.click == 1 :
+            self.image_command.source = str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath("blank.png"))
             t2 = Thread(target=self.acc.save_data)
             t2.start()
-            self.mesureState.text = "Currently analysing your posture..."
+            self.mesureState.text = "[color=000000]Currently analyzing your posture...[/color]"
             self.analysisBtn.text = "Stop analysis"
             self.analysisBtn.background_color = (1,0,0,1)
+            self.countdown()
 
         if self.click ==2 :
+            self.event.cancel()
             self.acc.stop = True
-            self.mesureState.text = "Posture analysis has been stopped"
+            self.mesureState.text = "Posture analysis is completed"
             self.analysisBtn.text = "See the results"
             self.analysisBtn.background_color = (0,0,0,1)
+            self.image_analyse.source = str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath("blank.png"))
 
         if self.click == 3 : 
             self.analyse.get_possible_file()
-            day = self.acc.date
-            self.analyse.available_session(day)
-            session = self.analyse.sessions[-1]
-            self.analyse.confirmDate.text = day
-            self.analyse.btnSession.text = session
-            self.analyse.btnSession.background_color = 0,1,0,1
-            kv.current = "analyse"
+            try:
+                day = self.acc.date
+            except:
+                pass
+            else:
+                self.analyse.available_session(day)
+                session = self.analyse.sessions[-1]
+                self.analyse.confirmDate.text = day
+                self.analyse.btnSession.text = session
+                self.analyse.btnSession.background_color = 0,1,0,1
+                kv.current = "analyse"
 
+    def on_leave(self):
+        self.analysisBtn.text = "Start analysis"
+        self.analysisBtn.background_color =0,1,0,1
+        self.mesureState.text = ""
+
+    def countdown(self):
+        self.event = Clock.schedule_interval(self.update_label,1)
+
+    def update_label(self,time_limit):
+        if self.count ==1:
+            imageName = "perfect.png"
+        elif self.count == 2:
+            imageName = "blank.png"
+        elif self.count ==3:
+            imageName="perfect.png"
+            self.count = 0
+        else:
+            pass
+        self.count+=1
+        self.image_analyse.source = str(Path(os.path.abspath(__file__)).parent.joinpath("posture_img").joinpath(imageName))
+
+        
     
 class WindowManager(ScreenManager):
     pass
@@ -170,7 +240,7 @@ def invalidFile():
 
 
 kv = Builder.load_file("my.kv")
-
+kv.current = "user"
 
 class Posture_AnalysisApp(App):
     def build(self):

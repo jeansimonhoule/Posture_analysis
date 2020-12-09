@@ -49,6 +49,9 @@ class kNeighbors:
 
 def main():
     KN = kNeighbors()
+    data = KN.load_excel_data("for_classification_xls.xlsx")
+    KN.fit(data)
+    KN.save_model()
     KN.load_model(str(Path(os.path.abspath(__file__)).parent.joinpath("SAVED_DATA").joinpath("trained_kNeighbors.sav")))
     pred = KN.predict_class([[2.5039291724004964, -8.215638537231916, -9.524017421703224, 18.638557701132036]])
     print(pred)

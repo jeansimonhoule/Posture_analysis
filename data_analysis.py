@@ -4,12 +4,10 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import datetime
-from utils import *
 import matplotlib.pyplot as plt
-import seaborn
 import json
 from classification import kNeighbors
-
+from user import User
 
 
 class Data:
@@ -24,7 +22,7 @@ class Data:
         
         self.day=day
         self.session = session
-        self.Data_path = root.parent.joinpath("SAVED_DATA").joinpath(self.day).joinpath(self.session).joinpath("DATA.csv") 
+        self.Data_path = root.parent.joinpath("SAVED_DATA").joinpath(User.currentUser).joinpath(self.day).joinpath(self.session).joinpath("DATA.csv") 
         self.Reference_path = self.Data_path.parents[2].joinpath("REFERENCE.csv")
         
         self.epoch_lenght = 60 # 300 secondes car nous voulons des périodes de 5 minutes
@@ -99,7 +97,7 @@ class Data:
 
 
     def get_figures(self):
-        bg_color = (0.88,0.88,0.88)
+        bg_color = (0.85,0.90,1)
         fig1 = plt.figure(1)
         fig1.patch.set_facecolor(bg_color)
         ax = plt.subplot(111)
@@ -115,24 +113,22 @@ class Data:
         x = np.insert(x,0,label_pos)
 
         #add the label and one blank space so that first label starts higher than x axis
-        label = ["","parfait","à corriger"]
+        label = ["","Good","Bad"]
         result = self.binaryClass
         y_data = label+result
     
-        barlist = ax.bar(timeLabel,y_data,color=self.colors)
-        #make first bar invisible 
-        #for i in range(3):
-            #barlist[i].set_color((0,0,0,0))
+        ax.bar(timeLabel,y_data,color=self.colors)
 
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         plt.xticks(rotation=45)
+        plt.yticks(fontsize=15)
         ax.set_facecolor(bg_color)
         plt.savefig(self.Data_path.parent.joinpath("result1.png"),bbox_inches="tight")
-
+        plt.close()
     
     def load_Kneighbors(self):
-        loadpath = self.Data_path.parents[2].joinpath("trained_kNeighbors.sav")
+        loadpath = self.Data_path.parents[3].joinpath("trained_kNeighbors.sav")
         self.classifier = kNeighbors()
         self.classifier.load_model(str(loadpath))
 
@@ -145,12 +141,12 @@ class Data:
         binaryclass = []
         colorList = []
         for classe in finalClass:
-            if classe == "reference":
+            if classe == "perfect":
                 colorList.append((0.09,0.74,0.11,1))
-                binaryclass.append("parfait")
+                binaryclass.append("Good")
             else: 
                 colorList.append((0.88,0.16,0.16,1))
-                binaryclass.append("à corriger")
+                binaryclass.append("Bad")
         colorList = [(0,0,0,0),(0,0,0,0),(0,0,0,0)]+colorList
         self.colors = colorList
         self.binaryClass = binaryclass
@@ -174,7 +170,6 @@ class Data:
 
 
     def analyze_my_data(self):
-        self.get_mean_reference()
         self.chunk_the_data()
         self.get_classification()
         self.time_label()
@@ -183,8 +178,7 @@ class Data:
 
 
 def main():
-    data = Data("session7","2020_12_01")
-    data.get_mean_reference()
+    data = Data("session12","2020_12_08")
     data.chunk_the_data()
     data.get_classification()
     data.time_label()
