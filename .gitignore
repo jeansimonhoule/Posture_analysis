@@ -4,7 +4,7 @@ kivy_venv/
 # Edit at https://www.toptal.com/developers/gitignore?templates=vscode
 
 ### vscode ###
-.vscode/
+.vscode
 
 # End of https://www.toptal.com/developers/gitignore/api/vscode
 .__pycache__/
