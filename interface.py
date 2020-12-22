@@ -229,7 +229,7 @@ class WindowManager(ScreenManager):
 
 def invalidFile():
     pop = Popup(title='Date invalide',
-    content=Label(text="Vérifier le format de la date"+'\n'+"Ou sinon vous avez pas fait de mesure ce jour la"),
+    content=Label(text="No analysis has been performed on this day"),
     size_hint=(None, None), size=(400, 200))
     pop.open()
 

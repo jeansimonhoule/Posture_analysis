@@ -148,7 +148,7 @@ class Accelerometer:
 
 
     def start_data(self):
-        self.setPort('COM3',9600)
+        self.setPort('COM4',9600)
         self.reset_microbit()
         self.check_for_heading(mode='in session')
         print("Recording starts now...")
